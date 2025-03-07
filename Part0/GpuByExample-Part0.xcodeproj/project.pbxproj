@@ -28,7 +28,7 @@
 
 /* Begin PBXFileReference section */
 		27E6F4DB2D778BC9007BA138 /* GpuByExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GpuByExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		27E6F4FE2D778D03007BA138 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = /Users/jfischer/Library/Frameworks/SDL3.xcframework; sourceTree = "<absolute>"; };
+		27E6F4FE2D778D03007BA138 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = ../Libraries/SDL3.xcframework; sourceTree = SOURCE_ROOT; };
 		27E6F5072D778E8D007BA138 /* .clang-format */ = {isa = PBXFileReference; lastKnownFileType = text; name = ".clang-format"; path = "../.clang-format"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
