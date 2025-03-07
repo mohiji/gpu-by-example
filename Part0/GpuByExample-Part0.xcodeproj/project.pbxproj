@@ -10,7 +10,6 @@
 		27E6F5002D778D09007BA138 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; };
 		27E6F5012D778D09007BA138 /* SDL3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		27E6F5082D778E8D007BA138 /* .clang-format in Resources */ = {isa = PBXBuildFile; fileRef = 27E6F5072D778E8D007BA138 /* .clang-format */; };
-		27E6F50A2D779110007BA138 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 27E6F5092D779110007BA138 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,8 +29,7 @@
 /* Begin PBXFileReference section */
 		27E6F4DB2D778BC9007BA138 /* GpuByExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GpuByExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		27E6F4FE2D778D03007BA138 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = /Users/jfischer/Library/Frameworks/SDL3.xcframework; sourceTree = "<absolute>"; };
-		27E6F5072D778E8D007BA138 /* .clang-format */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".clang-format"; sourceTree = "<group>"; };
-		27E6F5092D779110007BA138 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		27E6F5072D778E8D007BA138 /* .clang-format */ = {isa = PBXFileReference; lastKnownFileType = text; name = ".clang-format"; path = "../.clang-format"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -57,7 +55,6 @@
 		27E6F4D22D778BC9007BA138 = {
 			isa = PBXGroup;
 			children = (
-				27E6F5092D779110007BA138 /* README.md */,
 				27E6F5072D778E8D007BA138 /* .clang-format */,
 				27E6F4F92D778BE1007BA138 /* Source */,
 				27E6F4DC2D778BC9007BA138 /* Products */,
@@ -113,7 +110,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "GpuByExample" */;
+			buildConfigurationList = 27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "GpuByExample-Part0" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -137,7 +134,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27E6F50A2D779110007BA138 /* README.md in Resources */,
 				27E6F5082D778E8D007BA138 /* .clang-format in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -323,7 +319,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "GpuByExample" */ = {
+		27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "GpuByExample-Part0" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				27E6F4E92D778BCA007BA138 /* Debug */,
