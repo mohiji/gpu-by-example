@@ -8,6 +8,7 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <math.h> // for M_PI
 
 // I'm trying to keep the interesting / relevant parts of each chapter
 // in main.c, and moving stuff we've already seen out to other files.
@@ -38,6 +39,10 @@ typedef struct GBEVertex {
     GBEColor color;
 } GBEVertex;
 
+typedef struct GBEUniforms {
+    float angle;
+} GBEUniforms;
+
 // Now we need the actual triangle geometry. I'm cheating a bit here and choosing to
 // draw a triangle that's already defined in clip space, so we don't need to worry
 // about any math yet. (Or more specifically, providing a transformation to the vertex
@@ -54,11 +59,11 @@ static const GBEVertex kVertices[] = {
 static SDL_AppResult LoadShaders(SDL_Storage *storage, SDL_GPUDevice* device, SDL_GPUShader** vertexShader, SDL_GPUShader** fragmentShader)
 {
     GBE_LoadShaderInfo loadInfo = {
-        .path = "SingleTriangle",
+        .path = "RotatingTriangle",
         .stage = SDL_GPU_SHADERSTAGE_VERTEX,
         .entryPoint = "vertex_main",
         .samplerCount = 0,
-        .uniformBufferCount = 0,
+        .uniformBufferCount = 1,
         .storageBufferCount = 1,
         .storageTextureCount = 0
     };
@@ -70,6 +75,7 @@ static SDL_AppResult LoadShaders(SDL_Storage *storage, SDL_GPUDevice* device, SD
     loadInfo.stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
     loadInfo.entryPoint = "fragment_main";
     loadInfo.storageBufferCount = 0;
+    loadInfo.uniformBufferCount = 0;
 
     SDL_GPUShader* fs = GBE_LoadShader(storage, device, &loadInfo);
     if (fs == NULL) {
@@ -200,7 +206,7 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
 
 SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
 {
-    SDL_SetAppMetadata("GPU by Example - Uniforms and 3D Transforms", "0.0.1", "net.jonathanfischer.GpuByExample3");
+    SDL_SetAppMetadata("GPU by Example - Uniforms", "0.0.1", "net.jonathanfischer.GpuByExample3");
 
     GBE_AppContext* appContext;
     SDL_AppResult rc = GBE_Init(&appContext);
@@ -221,6 +227,14 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
 SDL_AppResult SDL_AppIterate(void* appState)
 {
     GBE_AppContext* context = (GBE_AppContext*)appState;
+
+    // Calculate a rotation angle for the triangle, based on elapsed
+    // time since the program started. I'm aiming for one complete
+    // rotation every 1.5 seconds.
+    float time = (SDL_GetTicks() % 1500) / 750.0f;
+    GBEUniforms uniforms = {
+        .angle = time * M_PI
+    };
 
     SDL_GPUCommandBuffer* cmdBuf;
     cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
@@ -251,6 +265,9 @@ SDL_AppResult SDL_AppIterate(void* appState)
         // the pipeline we've created, supply it with a vertex buffer, and tell it to draw some primitives,
         // telling it the number of vertices to work with.
         SDL_BindGPUGraphicsPipeline(renderPass, context->pipeline);
+
+        // Provide any uniforms we'll be using for this next set of primitives.
+        SDL_PushGPUVertexUniformData(cmdBuf, 0, &uniforms, sizeof(uniforms));
 
         // The API takes an array of vertex buffer pointers, not a single one.
         SDL_GPUBuffer* vertexBuffers[] = { context->vertexBuffer };

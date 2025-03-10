@@ -1,0 +1,51 @@
+// Pull in the Metal standard library, giving us access
+// to things like the sin() and cos() functions.
+#include <metal_stdlib>
+using namespace metal;
+
+// Sticking with the same Vertex structure as last time.
+struct Vertex
+{
+  float4 position [[position]];
+  float4 color;
+};
+
+// We provide a rotation angle as a Uniform to the vertex shader.
+// We'll update this rotation angle from the C code, but do the
+// math to rotate the triangle here in the shader.
+struct Uniforms
+{
+    float rotationAngle;
+};
+
+// Uniforms need to be tagged as input buffers in the same way
+// that vertex buffers do. SDL GPU supports up to 4 uniform
+// slots, which will be bound _before_ the vertex buffers are
+// So uniforms come first.
+vertex Vertex vertex_main(
+  constant Uniforms* uniforms [[buffer(0)]],
+  const device Vertex* vertices [[buffer(1)]],
+  uint vid [[vertex_id]]
+)
+{
+  // Rotate the incoming vertex's position around the origin.
+  float sinTheta = sin(uniforms->rotationAngle);
+  float cosTheta = cos(uniforms->rotationAngle);
+
+  Vertex in = vertices[vid];
+  float x = in.position.x * cosTheta - in.position.y * sinTheta;
+  float y = in.position.y * cosTheta + in.position.x * sinTheta;
+
+  // And pass the rotated vertex along to the next stage.
+  Vertex out;
+  out.position = float4(x, y, 0, 1);
+  out.color = in.color;
+  return out;
+}
+
+fragment float4 fragment_main(
+  Vertex inVertex [[stage_in]]
+)
+{
+  return inVertex.color;
+}
