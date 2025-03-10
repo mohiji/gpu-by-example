@@ -9,6 +9,10 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+// I'm trying to keep the interesting / relevant parts of each chapter
+// in main.c, and moving stuff we've already seen out to other files.
+#include "AppContext.h"
+
 // This time through we're actually drawing something, so we need _geometry_. And for
 // that, we need to specify exactly what we're going to give the GPU. For now, that's
 // a position and color.
@@ -43,49 +47,21 @@ static const GBEVertex kVertices[] = {
     { .position = {  0.5, -0.5, 0, 1 }, .color = { 0.0, 0.0, 1.0, 1.0 } },
 };
 
-// For our AppContext structure, we're adding a graphics pipeline and a buffer in GPU
-// memory to hold the vertices for the triangle we're drawing.
-typedef struct AppContext {
-    SDL_Window* window;
-    SDL_GPUDevice* device;
-
-    SDL_GPUGraphicsPipeline* pipeline;
-    SDL_GPUBuffer* vertexBuffer;
-} AppContext;
-
 // Loading shaders is a little involved, so I've moved that out to a standalone function.
-static SDL_AppResult GBE_LoadShaders(SDL_GPUDevice* device, SDL_GPUShader** vertexShader, SDL_GPUShader** fragmentShader)
+static SDL_AppResult LoadShaders(SDL_Storage *storage, SDL_GPUDevice* device, SDL_GPUShader** vertexShader, SDL_GPUShader** fragmentShader)
 {
-    // SDL has some functionality to help us locate a game's resource files; here I'm using
-    // their Storage abstraction.
-    SDL_Storage* storage = SDL_OpenTitleStorage(NULL, 0);
-    if (storage == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to open title storage: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    // I don't think this is necessary on desktop platforms, but on some devices
-    // the storage instance might not be available immediately, so we busy wait
-    // until it is.
-    while (!SDL_StorageReady(storage)) {
-        SDL_Delay(1);
-    }
-
-    // Read the contents of the shader file from disk.
     void* code = NULL;
     Uint64 codeSize = 0L;
-    if (!SDL_GetStorageFileSize(storage, "default.metallib", &codeSize)) {
+    if (!SDL_GetStorageFileSize(storage, "SingleTriangle.msl", &codeSize)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to determine size of file 'SingleTriangle.msl': %s", SDL_GetError());
-        SDL_CloseStorage(storage);
         return SDL_APP_FAILURE;
     }
 
     // Allocate memory to read the file into, then do that.
     code = SDL_malloc(codeSize);
-    if (!SDL_ReadStorageFile(storage, "default.metallib", code, codeSize)) {
+    if (!SDL_ReadStorageFile(storage, "SingleTriangle.msl", code, codeSize)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to read file 'SingleTriangle.msl': %s", SDL_GetError());
         SDL_free(code);
-        SDL_CloseStorage(storage);
         return SDL_APP_FAILURE;
     }
 
@@ -96,7 +72,7 @@ static SDL_AppResult GBE_LoadShaders(SDL_GPUDevice* device, SDL_GPUShader** vert
         .code = code,
         .code_size = codeSize,
         .entrypoint = "vertex_main",
-        .format = SDL_GPU_SHADERFORMAT_METALLIB,
+        .format = SDL_GPU_SHADERFORMAT_MSL,
         .stage = SDL_GPU_SHADERSTAGE_VERTEX,
         .num_samplers = 0,
         .num_uniform_buffers = 0,
@@ -108,7 +84,6 @@ static SDL_AppResult GBE_LoadShaders(SDL_GPUDevice* device, SDL_GPUShader** vert
     if (vs == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create vertex shader: %s", SDL_GetError());
         SDL_free(code);
-        SDL_CloseStorage(storage);
         return SDL_APP_FAILURE;
     }
 
@@ -121,7 +96,6 @@ static SDL_AppResult GBE_LoadShaders(SDL_GPUDevice* device, SDL_GPUShader** vert
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create fragment shader: %s", SDL_GetError());
         SDL_ReleaseGPUShader(device, vs);
         SDL_free(code);
-        SDL_CloseStorage(storage);
         return SDL_APP_FAILURE;
     }
 
@@ -129,22 +103,17 @@ static SDL_AppResult GBE_LoadShaders(SDL_GPUDevice* device, SDL_GPUShader** vert
     SDL_free(code);
     code = NULL;
 
-    // We're done with the storage instance as well.
-    // NOTE: We can't close this until we've freed the memory used by code. I don't know why,
-    // but the application segfaults if you try.
-    SDL_CloseStorage(storage);
-
     *vertexShader = vs;
     *fragmentShader = fs;
     return SDL_APP_CONTINUE;
 }
 
-static SDL_AppResult GBE_BuildPipeline(AppContext* context)
+static SDL_AppResult BuildPipeline(AppContext* context)
 {
     SDL_GPUShader* vertexShader;
     SDL_GPUShader* fragmentShader;
 
-    SDL_AppResult rc = GBE_LoadShaders(context->device, &vertexShader, &fragmentShader);
+    SDL_AppResult rc = LoadShaders(context->titleStorage, context->device, &vertexShader, &fragmentShader);
     if (rc != SDL_APP_CONTINUE) {
         return rc;
     }
@@ -209,7 +178,7 @@ static SDL_AppResult GBE_BuildPipeline(AppContext* context)
     return pipeline != NULL ? SDL_APP_CONTINUE : SDL_APP_FAILURE;
 }
 
-static SDL_AppResult GBE_BuildVertexBuffer(AppContext* context)
+static SDL_AppResult BuildVertexBuffer(AppContext* context)
 {
     // Creating a vertex buffer is easy: all we really need to tell it is what
     // we're going to use it for and how much space to allocate.
@@ -260,47 +229,19 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
 {
     SDL_SetAppMetadata("GPU by Example - Drawing a triangle", "0.0.1", "net.jonathanfischer.GpuByExamplePart1");
 
-    // Initialize the video and event subsystems
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
+    AppContext* appContext;
+    SDL_AppResult rc = AppContext_Init(&appContext);
+    if (rc != SDL_APP_CONTINUE) {
+        return rc;
     }
+    *appState = appContext;
 
-    SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV |
-                                        SDL_GPU_SHADERFORMAT_DXIL |
-                                        SDL_GPU_SHADERFORMAT_MSL;
-
-    SDL_GPUDevice* device = SDL_CreateGPUDevice(shaderFormats, false, NULL);
-    if (device == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,  "Couldn't not create GPU device: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    SDL_WindowFlags windowFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
-    SDL_Window* window = SDL_CreateWindow("GPU by Example - Drawing a triangle", 800, 600, windowFlags);
-
-    if (window == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    if (!SDL_ClaimWindowForGPUDevice(device, window)) {
-        SDL_Log("SDL_ClaimWindowForGPUDevice failed: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    // Switched to calloc for safety's sake; now I know it's zero-initialized.
-    AppContext* context = SDL_calloc(1, sizeof(AppContext));
-    context->window = window;
-    context->device = device;
-    *appState = context;
-
-    SDL_AppResult rc = GBE_BuildPipeline(context);
+    rc = BuildPipeline(appContext);
     if (rc != SDL_APP_CONTINUE) {
         return SDL_APP_FAILURE;
     }
 
-    rc = GBE_BuildVertexBuffer(context);
+    rc = BuildVertexBuffer(appContext);
     return rc;
 }
 
@@ -366,24 +307,5 @@ SDL_AppResult SDL_AppEvent(void* appState, SDL_Event* event)
 
 void SDL_AppQuit(void* appState, SDL_AppResult result)
 {
-    AppContext* context = (AppContext*)appState;
-
-    if (context->device != NULL) {
-        if (context->window != NULL) {
-            SDL_ReleaseWindowFromGPUDevice(context->device, context->window);
-            SDL_DestroyWindow(context->window);
-        }
-
-        if (context->pipeline != NULL) {
-            SDL_ReleaseGPUGraphicsPipeline(context->device, context->pipeline);
-        }
-
-        if (context->vertexBuffer != NULL) {
-            SDL_ReleaseGPUBuffer(context->device, context->vertexBuffer);
-        }
-
-        SDL_DestroyGPUDevice(context->device);
-    }
-
-    SDL_Quit();
+    AppContext_Cleanup((AppContext*)appState);
 }

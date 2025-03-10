@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		27E6F5002D778D09007BA138 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; };
 		27E6F5012D778D09007BA138 /* SDL3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		27E6F5082D778E8D007BA138 /* .clang-format in Resources */ = {isa = PBXBuildFile; fileRef = 27E6F5072D778E8D007BA138 /* .clang-format */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -60,11 +59,11 @@
 		27E6F4D22D778BC9007BA138 = {
 			isa = PBXGroup;
 			children = (
-				27DB64472D7ABA8F00855F9A /* Resources */,
-				27E6F5072D778E8D007BA138 /* .clang-format */,
 				27E6F4F92D778BE1007BA138 /* Source */,
+				27DB64472D7ABA8F00855F9A /* Resources */,
 				27E6F4DC2D778BC9007BA138 /* Products */,
 				27E6F4FE2D778D03007BA138 /* SDL3.xcframework */,
+				27E6F5072D778E8D007BA138 /* .clang-format */,
 			);
 			sourceTree = "<group>";
 		};
@@ -141,7 +140,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27E6F5082D778E8D007BA138 /* .clang-format in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
