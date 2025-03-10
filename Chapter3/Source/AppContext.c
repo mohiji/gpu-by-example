@@ -7,7 +7,7 @@
 
 #include "AppContext.h"
 
-SDL_AppResult AppContext_Init(AppContext** appContext)
+SDL_AppResult GBE_Init(GBE_AppContext** appContext)
 {
     // Initialize the video and event subsystems
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
@@ -54,7 +54,7 @@ SDL_AppResult AppContext_Init(AppContext** appContext)
     }
 
     // Switched to calloc for safety's sake; now I know it's zero-initialized.
-    AppContext* context = SDL_calloc(1, sizeof(AppContext));
+    GBE_AppContext* context = SDL_calloc(1, sizeof(GBE_AppContext));
     context->window = window;
     context->device = device;
     context->titleStorage = storage;
@@ -63,7 +63,7 @@ SDL_AppResult AppContext_Init(AppContext** appContext)
     return SDL_APP_CONTINUE;
 }
 
-void AppContext_Cleanup(AppContext* context)
+void GBE_Cleanup(GBE_AppContext* context)
 {
     if (context->titleStorage != NULL) {
         SDL_CloseStorage(context->titleStorage);

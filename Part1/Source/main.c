@@ -108,7 +108,7 @@ static SDL_AppResult LoadShaders(SDL_Storage *storage, SDL_GPUDevice* device, SD
     return SDL_APP_CONTINUE;
 }
 
-static SDL_AppResult BuildPipeline(AppContext* context)
+static SDL_AppResult BuildPipeline(GBE_AppContext* context)
 {
     SDL_GPUShader* vertexShader;
     SDL_GPUShader* fragmentShader;
@@ -178,7 +178,7 @@ static SDL_AppResult BuildPipeline(AppContext* context)
     return pipeline != NULL ? SDL_APP_CONTINUE : SDL_APP_FAILURE;
 }
 
-static SDL_AppResult BuildVertexBuffer(AppContext* context)
+static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
 {
     // Creating a vertex buffer is easy: all we really need to tell it is what
     // we're going to use it for and how much space to allocate.
@@ -229,25 +229,25 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
 {
     SDL_SetAppMetadata("GPU by Example - Drawing a triangle", "0.0.1", "net.jonathanfischer.GpuByExample2");
 
-    AppContext* appContext;
-    SDL_AppResult rc = AppContext_Init(&appContext);
+    GBE_AppContext* GBE_AppContext;
+    SDL_AppResult rc = GBE_Init(&GBE_AppContext);
     if (rc != SDL_APP_CONTINUE) {
         return rc;
     }
-    *appState = appContext;
+    *appState = GBE_AppContext;
 
-    rc = BuildPipeline(appContext);
+    rc = BuildPipeline(GBE_AppContext);
     if (rc != SDL_APP_CONTINUE) {
         return SDL_APP_FAILURE;
     }
 
-    rc = BuildVertexBuffer(appContext);
+    rc = BuildVertexBuffer(GBE_AppContext);
     return rc;
 }
 
 SDL_AppResult SDL_AppIterate(void* appState)
 {
-    AppContext* context = (AppContext*)appState;
+    GBE_AppContext* context = (GBE_AppContext*)appState;
 
     SDL_GPUCommandBuffer* cmdBuf;
     cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
@@ -307,5 +307,5 @@ SDL_AppResult SDL_AppEvent(void* appState, SDL_Event* event)
 
 void SDL_AppQuit(void* appState, SDL_AppResult result)
 {
-    AppContext_Cleanup((AppContext*)appState);
+    GBE_Cleanup((GBE_AppContext*)appState);
 }
