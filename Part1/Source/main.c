@@ -13,6 +13,9 @@
 // in main.c, and moving stuff we've already seen out to other files.
 #include "AppContext.h"
 
+// Wrapper around loading shaders.
+#include "Shaders.h"
+
 // This time through we're actually drawing something, so we need _geometry_. And for
 // that, we need to specify exactly what we're going to give the GPU. For now, that's
 // a position and color.
@@ -47,75 +50,37 @@ static const GBEVertex kVertices[] = {
     { .position = {  0.5, -0.5, 0, 1 }, .color = { 0.0, 0.0, 1.0, 1.0 } },
 };
 
-// Loading shaders is a little involved, so I've moved that out to a standalone function.
-static SDL_AppResult LoadShaders(SDL_Storage *storage, SDL_GPUDevice* device, SDL_GPUShader** vertexShader, SDL_GPUShader** fragmentShader)
-{
-    void* code = NULL;
-    Uint64 codeSize = 0L;
-    if (!SDL_GetStorageFileSize(storage, "SingleTriangle.msl", &codeSize)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to determine size of file 'SingleTriangle.msl': %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    // Allocate memory to read the file into, then do that.
-    code = SDL_malloc(codeSize);
-    if (!SDL_ReadStorageFile(storage, "SingleTriangle.msl", code, codeSize)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to read file 'SingleTriangle.msl': %s", SDL_GetError());
-        SDL_free(code);
-        return SDL_APP_FAILURE;
-    }
-
-    // When creating a shader, we need to tell it what stage of the pipeline it's meant
-    // to process, how many inputs it takes, and what the entry function's name is. This
-    // one covers the vertex shader
-    SDL_GPUShaderCreateInfo createInfo = {
-        .code = code,
-        .code_size = codeSize,
-        .entrypoint = "vertex_main",
-        .format = SDL_GPU_SHADERFORMAT_MSL,
-        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-        .num_samplers = 0,
-        .num_uniform_buffers = 0,
-        .num_storage_buffers = 1,
-        .num_storage_textures = 0
-    };
-
-    SDL_GPUShader* vs = SDL_CreateGPUShader(device, &createInfo);
-    if (vs == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create vertex shader: %s", SDL_GetError());
-        SDL_free(code);
-        return SDL_APP_FAILURE;
-    }
-
-    // And this one the fragment shader.
-    createInfo.entrypoint = "fragment_main";
-    createInfo.stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
-    createInfo.num_storage_buffers = 0;
-    SDL_GPUShader* fs = SDL_CreateGPUShader(device, &createInfo);
-    if (fs == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create fragment shader: %s", SDL_GetError());
-        SDL_ReleaseGPUShader(device, vs);
-        SDL_free(code);
-        return SDL_APP_FAILURE;
-    }
-
-    // And we're done, let's cleanup and return
-    SDL_free(code);
-    code = NULL;
-
-    *vertexShader = vs;
-    *fragmentShader = fs;
-    return SDL_APP_CONTINUE;
-}
-
 static SDL_AppResult BuildPipeline(GBE_AppContext* context)
 {
-    SDL_GPUShader* vertexShader;
-    SDL_GPUShader* fragmentShader;
+    GBE_LoadShaderInfo vertexShaderInfo = {
+        .path = "SingleTriangle",
+        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+        .entryPoint = "vertex_main",
+        .samplerCount = 0,
+        .uniformBufferCount = 0,
+        .storageBufferCount = 1,
+        .storageTextureCount = 0
+    };
 
-    SDL_AppResult rc = LoadShaders(context->titleStorage, context->device, &vertexShader, &fragmentShader);
-    if (rc != SDL_APP_CONTINUE) {
-        return rc;
+    SDL_GPUShader* vertexShader = GBE_LoadShader(context->titleStorage, context->device, &vertexShaderInfo);
+    if (vertexShader == NULL) {
+        return SDL_APP_FAILURE;
+    }
+
+    GBE_LoadShaderInfo fragmentShaderInfo = {
+        .path = "SingleTriangle",
+        .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+        .entryPoint = "fragment_main",
+        .samplerCount = 0,
+        .uniformBufferCount = 0,
+        .storageBufferCount = 0,
+        .storageTextureCount = 0
+    };
+
+    SDL_GPUShader* fragmentShader = GBE_LoadShader(context->titleStorage, context->device, &fragmentShaderInfo);
+    if (fragmentShader == NULL) {
+        SDL_ReleaseGPUShader(context->device, vertexShader);
+        return SDL_APP_FAILURE;
     }
 
     // Lots of stuff here! Let's take it one chunk at a time. First, we describe the
