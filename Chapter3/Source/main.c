@@ -50,9 +50,9 @@ typedef struct GBEUniforms {
 static const size_t kNumVertices = 3;
 
 static const GBEVertex kVertices[] = {
-    { .position = {  0.0,  0.5, 0, 1 }, .color = { 1.0, 0.0, 0.0, 1.0 } },
-    { .position = { -0.5, -0.5, 0, 1 }, .color = { 0.0, 1.0, 0.0, 1.0 } },
-    { .position = {  0.5, -0.5, 0, 1 }, .color = { 0.0, 0.0, 1.0, 1.0 } },
+    { .position = {  0.5,   0.0, 0, 1 }, .color = { 1.0, 0.0, 0.0, 1.0 } },
+    { .position = { -0.25,  0.43, 0, 1 }, .color = { 0.0, 1.0, 0.0, 1.0 } },
+    { .position = { -0.25, -0.43, 0, 1 }, .color = { 0.0, 0.0, 1.0, 1.0 } },
 };
 
 // Loading shaders is a little involved, so I've moved that out to a standalone function.
