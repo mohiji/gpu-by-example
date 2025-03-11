@@ -131,7 +131,7 @@ SDL_AppResult SDL_AppIterate(void* appState)
             .store_op = SDL_GPU_STOREOP_STORE,
 
             // And here's the clear color, a nice green.
-            .clear_color = {0.16, 0.47, 0.34, 1}};
+            .clear_color = {0.16f, 0.47f, 0.34f, 1.0f}};
 
         // Begin and end the render pass. With no drawing commands, this will clear the swapchain texture
         // to the color provided above and nothing else.
@@ -164,9 +164,18 @@ void SDL_AppQuit(void* appState, SDL_AppResult result)
 {
     AppContext* context = (AppContext*)appState;
 
-    SDL_ReleaseWindowFromGPUDevice(context->device, context->window);
-    SDL_DestroyWindow(context->window);
-    SDL_DestroyGPUDevice(context->device);
+    if (context != NULL) {
+        if (context->device != NULL) {
+            if (context->window != NULL) {
+                SDL_ReleaseWindowFromGPUDevice(context->device, context->window);
+                SDL_DestroyWindow(context->window);
+            }
+
+            SDL_DestroyGPUDevice(context->device);
+        }
+
+        SDL_free(context);
+    }
 
     SDL_Quit();
 }
