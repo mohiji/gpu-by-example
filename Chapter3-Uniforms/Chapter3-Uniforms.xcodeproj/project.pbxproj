@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		27E6F5002D778D09007BA138 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; };
 		27E6F5012D778D09007BA138 /* SDL3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		27E6F5082D778E8D007BA138 /* .clang-format in Resources */ = {isa = PBXBuildFile; fileRef = 27E6F5072D778E8D007BA138 /* .clang-format */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,12 +26,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		27E6F4DB2D778BC9007BA138 /* GpuByExample-Part0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GpuByExample-Part0.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		27E6F4DB2D778BC9007BA138 /* Chapter3-Uniforms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Chapter3-Uniforms.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		27E6F4FE2D778D03007BA138 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = ../Libraries/SDL3.xcframework; sourceTree = SOURCE_ROOT; };
 		27E6F5072D778E8D007BA138 /* .clang-format */ = {isa = PBXFileReference; lastKnownFileType = text; name = ".clang-format"; path = "../.clang-format"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		27DB64472D7ABA8F00855F9A /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		27E6F4F92D778BE1007BA138 /* Source */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Source;
@@ -55,17 +59,18 @@
 		27E6F4D22D778BC9007BA138 = {
 			isa = PBXGroup;
 			children = (
-				27E6F5072D778E8D007BA138 /* .clang-format */,
 				27E6F4F92D778BE1007BA138 /* Source */,
+				27DB64472D7ABA8F00855F9A /* Resources */,
 				27E6F4DC2D778BC9007BA138 /* Products */,
 				27E6F4FE2D778D03007BA138 /* SDL3.xcframework */,
+				27E6F5072D778E8D007BA138 /* .clang-format */,
 			);
 			sourceTree = "<group>";
 		};
 		27E6F4DC2D778BC9007BA138 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				27E6F4DB2D778BC9007BA138 /* GpuByExample-Part0.app */,
+				27E6F4DB2D778BC9007BA138 /* Chapter3-Uniforms.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -73,9 +78,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		27E6F4DA2D778BC9007BA138 /* GpuByExample-Part0 */ = {
+		27E6F4DA2D778BC9007BA138 /* Chapter3-Uniforms */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 27E6F4EB2D778BCA007BA138 /* Build configuration list for PBXNativeTarget "GpuByExample-Part0" */;
+			buildConfigurationList = 27E6F4EB2D778BCA007BA138 /* Build configuration list for PBXNativeTarget "Chapter3-Uniforms" */;
 			buildPhases = (
 				27E6F4D72D778BC9007BA138 /* Sources */,
 				27E6F4D82D778BC9007BA138 /* Frameworks */,
@@ -87,13 +92,14 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				27DB64472D7ABA8F00855F9A /* Resources */,
 				27E6F4F92D778BE1007BA138 /* Source */,
 			);
-			name = "GpuByExample-Part0";
+			name = "Chapter3-Uniforms";
 			packageProductDependencies = (
 			);
 			productName = GpuByExample;
-			productReference = 27E6F4DB2D778BC9007BA138 /* GpuByExample-Part0.app */;
+			productReference = 27E6F4DB2D778BC9007BA138 /* Chapter3-Uniforms.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -110,7 +116,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "GpuByExample-Part0" */;
+			buildConfigurationList = 27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "Chapter3-Uniforms" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -124,7 +130,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				27E6F4DA2D778BC9007BA138 /* GpuByExample-Part0 */,
+				27E6F4DA2D778BC9007BA138 /* Chapter3-Uniforms */,
 			);
 		};
 /* End PBXProject section */
@@ -134,7 +140,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27E6F5082D778E8D007BA138 /* .clang-format in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,9 +289,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = net.jonathanfischer.GpuByExample;
+				PRODUCT_BUNDLE_IDENTIFIER = net.jonathanfischer.GpuByExample3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -308,9 +313,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = net.jonathanfischer.GpuByExample;
+				PRODUCT_BUNDLE_IDENTIFIER = net.jonathanfischer.GpuByExample3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -319,7 +324,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "GpuByExample-Part0" */ = {
+		27E6F4D62D778BC9007BA138 /* Build configuration list for PBXProject "Chapter3-Uniforms" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				27E6F4E92D778BCA007BA138 /* Debug */,
@@ -328,7 +333,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		27E6F4EB2D778BCA007BA138 /* Build configuration list for PBXNativeTarget "GpuByExample-Part0" */ = {
+		27E6F4EB2D778BCA007BA138 /* Build configuration list for PBXNativeTarget "Chapter3-Uniforms" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				27E6F4EC2D778BCA007BA138 /* Debug */,
