@@ -1,17 +1,25 @@
-// This maps directly to the vertex structure in the host C
-// program, with 4 32-bit float components for position and
-// 4 32-bit float components for color.
-struct Vertex
+// Input from the host program. This matches the GBEVertex structure defined
+// in main.c
+struct GBEVertex
 {
-  // The SV_Position flag on this component tells the driver
-  // that this field of the structure is the one that's used
-  // as the clip-space position of the vertex at the end of
-  // the pipeline.
-  float4 Position : SV_Position;
-  float4 Color : COLOR0;
+    float4 position : TEXCOORD0;
+    float4 color : TEXCOORD1;
 };
 
-Vertex vertex_main(Vertex input)
+// Output from the vertex program. Yes, it's the same as the input, with
+// semantic tags added to tell the driver how to link this vertex shader
+// together with the fragment/pixel shader.
+struct Output
 {
-    return input;
+    float4 position : SV_Position;
+    float4 color : TEXCOORD0;
+};
+
+Output vertex_main(GBEVertex input)
+{
+    Output output;
+    output.position = input.position;
+    output.color = input.color;
+    return output;
 }
+
