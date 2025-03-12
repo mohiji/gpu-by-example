@@ -57,7 +57,7 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
         .stage = SDL_GPU_SHADERSTAGE_VERTEX,
         .samplerCount = 0,
         .uniformBufferCount = 0,
-        .storageBufferCount = 1,
+        .storageBufferCount = 0,
         .storageTextureCount = 0
     };
 
