@@ -3,3 +3,11 @@ xcuserdata
 commit.msg
 build
 
+# Windows / Visual Studio stuff
+/.vs
+/Libraries/Windows/lib/arm64
+x86
+x64
+Debug
+Release
+*.vcxproj.user

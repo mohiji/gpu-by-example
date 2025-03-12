@@ -149,7 +149,7 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     // we're going to use it for and how much space to allocate.
     SDL_GPUBufferCreateInfo bufferCreateInfo = {
         .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-        .size = sizeof(GBEVertex) * kNumVertices
+        .size = (Uint32)(sizeof(GBEVertex) * kNumVertices)
     };
     SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(context->device, &bufferCreateInfo);
 
@@ -158,7 +158,7 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     // copy the data from the transfer buffer into the vertex buffer.
     SDL_GPUTransferBufferCreateInfo transferBufferCreateInfo = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = sizeof(GBEVertex) * kNumVertices
+        .size = (Uint32)(sizeof(GBEVertex) * kNumVertices)
     };
     SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(context->device, &transferBufferCreateInfo);
 
@@ -177,7 +177,7 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     SDL_GPUBufferRegion targetBuffer = {
         .buffer = vertexBuffer,
         .offset = 0,
-        .size = sizeof(GBEVertex) * kNumVertices
+        .size = (Uint32)(sizeof(GBEVertex) * kNumVertices)
     };
 
     SDL_UploadToGPUBuffer(copyPass, &sourceBuffer, &targetBuffer, true);
@@ -234,7 +234,7 @@ SDL_AppResult SDL_AppIterate(void* appState)
             .cycle = true,
             .load_op = SDL_GPU_LOADOP_CLEAR,
             .store_op = SDL_GPU_STOREOP_STORE,
-            .clear_color = {0.12, 0.12, 0.12, 1}};
+            .clear_color = {0.12f, 0.12f, 0.12f, 1.0f}};
 
         SDL_GPURenderPass* renderPass;
         renderPass = SDL_BeginGPURenderPass(cmdBuf, &targetInfo, 1, NULL);
