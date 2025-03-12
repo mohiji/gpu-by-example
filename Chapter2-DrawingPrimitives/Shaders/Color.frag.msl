@@ -1,0 +1,11 @@
+
+struct OutputVertex
+{
+    float4 position [[position]];
+    float4 color;
+};
+
+fragment float4 fragment_main(OutputVertex vertex_in [[stage_in]])
+{
+    return vertex_in.color;
+}

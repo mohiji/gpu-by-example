@@ -14,7 +14,6 @@
 typedef struct GBE_LoadShaderInfo {
     const char* path;
     SDL_GPUShaderStage stage;
-    const char* entryPoint;
     Uint32 samplerCount;
     Uint32 uniformBufferCount;
     Uint32 storageBufferCount;

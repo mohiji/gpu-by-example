@@ -53,9 +53,8 @@ static const GBEVertex kVertices[] = {
 static SDL_AppResult BuildPipeline(GBE_AppContext* context)
 {
     GBE_LoadShaderInfo vertexShaderInfo = {
-        .path = "SingleTriangle",
+        .path = "PositionColor",
         .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-        .entryPoint = "vertex_main",
         .samplerCount = 0,
         .uniformBufferCount = 0,
         .storageBufferCount = 1,
@@ -68,9 +67,8 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
     }
 
     GBE_LoadShaderInfo fragmentShaderInfo = {
-        .path = "SingleTriangle",
+        .path = "Color",
         .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-        .entryPoint = "fragment_main",
         .samplerCount = 0,
         .uniformBufferCount = 0,
         .storageBufferCount = 0,
@@ -116,12 +114,38 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
         .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE
     };
 
+    // We need to tell the pipeline exactly what shape our input data is going to be
+    // in. Metal will let us get away without this and still work fine! Vulkan and
+    // Direct3D12 will not.
+    SDL_GPUVertexInputState vertexInputState = {
+        .num_vertex_buffers = 1,
+        .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]){{
+            .slot = 0,
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+            .pitch = sizeof(GBEVertex)
+        }},
+        .num_vertex_attributes = 2,
+        .vertex_attributes = (SDL_GPUVertexAttribute[]){{
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+            .location = 0,
+            .offset = 0
+        }, {
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+            .location = 1,
+            .offset = sizeof(float) * 4
+        }}
+    };
+
     // That should be enough to create a pipeline! We provide the target info and
     // rasterizer state defined above, we want to draw triangles, and we want to
     // do it using the vertex and fragment shaders we loaded.
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .target_info = targetInfo,
         .rasterizer_state = rasterizerState,
+        .vertex_input_state = vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .vertex_shader = vertexShader,
         .fragment_shader = fragmentShader
@@ -245,8 +269,11 @@ SDL_AppResult SDL_AppIterate(void* appState)
         SDL_BindGPUGraphicsPipeline(renderPass, context->pipeline);
 
         // The API takes an array of vertex buffer pointers, not a single one.
-        SDL_GPUBuffer* vertexBuffers[] = { context->vertexBuffer };
-        SDL_BindGPUVertexStorageBuffers(renderPass, 0, vertexBuffers, 1);
+        SDL_GPUBufferBinding vertexBufferBinding = {
+            .buffer = context->vertexBuffer,
+            .offset = 0
+        };
+        SDL_BindGPUVertexBuffers(renderPass, 0, &vertexBufferBinding, 1);
 
         // We have 3 vertices to draw.
         SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);

@@ -1,0 +1,24 @@
+// This maps directly to the vertex structure in the host C
+// program, with 4 32-bit float components for position and
+// 4 32-bit float components for color.
+struct GBEVertex
+{
+    float4 position [[attribute(0)]];
+    float4 color    [[attribute(1)]];
+};
+
+struct OutputVertex
+{
+    float4 position [[position]];
+    float4 color;
+};
+
+vertex OutputVertex vertex_main(GBEVertex vertex_in [[stage_in]])
+{
+    OutputVertex out = {
+        .position = vertex_in.position,
+        .color = vertex_in.color
+    };
+
+    return out;
+}

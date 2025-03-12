@@ -30,11 +30,13 @@ SDL_GPUShader* GBE_LoadShader(
 
     char fullPath[256];
     const char* extraExtension = loadShaderInfo->stage == SDL_GPU_SHADERSTAGE_VERTEX ? "vert" : "frag";
+    const char* entryPoint = "main";
     if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
         SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.spv", loadShaderInfo->path, extraExtension);
         format = SDL_GPU_SHADERFORMAT_SPIRV;
     } else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%s.msl", loadShaderInfo->path);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.msl", loadShaderInfo->path, extraExtension);
+        entryPoint = loadShaderInfo->stage == SDL_GPU_SHADERSTAGE_VERTEX ? "vertex_main" : "fragment_main";
         format = SDL_GPU_SHADERFORMAT_MSL;
     } else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
         SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.dxil", loadShaderInfo->path, extraExtension);
@@ -62,7 +64,7 @@ SDL_GPUShader* GBE_LoadShader(
     SDL_GPUShaderCreateInfo shaderInfo = {
         .code = code,
         .code_size = codeSize,
-        .entrypoint = loadShaderInfo->entryPoint,
+        .entrypoint = entryPoint,
         .format = format,
         .stage = loadShaderInfo->stage,
         .num_samplers = loadShaderInfo->samplerCount,

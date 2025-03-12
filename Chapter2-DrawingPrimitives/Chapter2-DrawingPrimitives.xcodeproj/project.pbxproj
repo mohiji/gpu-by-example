@@ -32,9 +32,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		27DB64472D7ABA8F00855F9A /* Resources */ = {
+		27DB64472D7ABA8F00855F9A /* Shaders */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Resources;
+			path = Shaders;
 			sourceTree = "<group>";
 		};
 		27E6F4F92D778BE1007BA138 /* Source */ = {
@@ -60,7 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				27E6F4F92D778BE1007BA138 /* Source */,
-				27DB64472D7ABA8F00855F9A /* Resources */,
+				27DB64472D7ABA8F00855F9A /* Shaders */,
 				27E6F4DC2D778BC9007BA138 /* Products */,
 				27E6F4FE2D778D03007BA138 /* SDL3.xcframework */,
 				27E6F5072D778E8D007BA138 /* .clang-format */,
@@ -92,7 +92,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				27DB64472D7ABA8F00855F9A /* Resources */,
+				27DB64472D7ABA8F00855F9A /* Shaders */,
 				27E6F4F92D778BE1007BA138 /* Source */,
 			);
 			name = "Chapter2-DrawingPrimitives";
