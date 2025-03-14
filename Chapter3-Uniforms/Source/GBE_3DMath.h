@@ -17,14 +17,11 @@ typedef struct GBE_Vector4 {
     float x, y, z, w;
 } GBE_Vector4;
 
-typedef union GBE_Matrix4x4 {
-    struct {
-        float m00, m01, m02, m03;
-        float m10, m11, m12, m13;
-        float m20, m21, m22, m23;
-        float m30, m31, m32, m33;
-    };
-    float m[16];
+typedef struct GBE_Matrix4x4 {
+    float m11, m12, m13, m14;
+    float m21, m22, m23, m24;
+    float m31, m32, m33, m34;
+    float m41, m42, m43, m44;
 } GBE_Matrix4x4;
 
 extern const GBE_Vector3   kZeroVector3;

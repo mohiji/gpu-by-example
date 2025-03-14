@@ -4,10 +4,10 @@
 using namespace metal;
 
 // Sticking with the same Vertex structure as last time.
-struct Vertex
+struct GBEVertex
 {
-  float4 position [[position]];
-  float4 color;
+    float4 position [[attribute(0)]];
+    float4 color    [[attribute(1)]];
 };
 
 // We provide a rotation angle as a Uniform to the vertex shader.
@@ -18,34 +18,27 @@ struct Uniforms
     float rotationAngle;
 };
 
-// Uniforms need to be tagged as input buffers in the same way
-// that vertex buffers do. SDL GPU supports up to 4 uniform
-// slots, which will be bound _before_ the vertex buffers are
-// So uniforms come first.
-vertex Vertex vertex_main(
-  constant Uniforms* uniforms [[buffer(0)]],
-  const device Vertex* vertices [[buffer(1)]],
-  uint vid [[vertex_id]]
+struct OutputVertex
+{
+    float4 position [[position]];
+    float4 color;
+};
+
+vertex OutputVertex vertex_main(
+  GBEVertex vertex_in [[stage_in]],
+  constant Uniforms* uniforms [[buffer(0)]]
 )
 {
   // Rotate the incoming vertex's position around the origin.
   float sinTheta = sin(uniforms->rotationAngle);
   float cosTheta = cos(uniforms->rotationAngle);
 
-  Vertex in = vertices[vid];
-  float x = in.position.x * cosTheta - in.position.y * sinTheta;
-  float y = in.position.y * cosTheta + in.position.x * sinTheta;
+  float x = vertex_in.position.x * cosTheta - vertex_in.position.y * sinTheta;
+  float y = vertex_in.position.y * cosTheta + vertex_in.position.x * sinTheta;
 
   // And pass the rotated vertex along to the next stage.
-  Vertex out;
+  OutputVertex out;
   out.position = float4(x, y, 0, 1);
-  out.color = in.color;
+  out.color = vertex_in.color;
   return out;
-}
-
-fragment float4 fragment_main(
-  Vertex inVertex [[stage_in]]
-)
-{
-  return inVertex.color;
 }

@@ -13,35 +13,17 @@
 // I'm trying to keep the interesting / relevant parts of each chapter
 // in main.c, and moving stuff we've already seen out to other files.
 #include "AppContext.h"
+#include "GBE_3DMath.h"
+#include "GBE_Shaders.h"
 
-// Wrapper around loading shaders.
-#include "Shaders.h"
+typedef struct GBE_Vertex {
+    GBE_Vector4 position;
+    GBE_Vector4 color;
+} GBE_Vertex;
 
-// This time through we're actually drawing something, so we need _geometry_. And for
-// that, we need to specify exactly what we're going to give the GPU. For now, that's
-// a position and color.
-//
-// NOTE: In theory we could use both a 2 component position (only x and y) and a
-// component color (red, green, and blue) and provide the missing pieces in the
-// shader, but for Metal at least there are requirements about certain pieces of
-// data being aligned to 16-bytes. It's easier to just use the full four components
-// for both, at least for now.
-typedef struct GBEVector4 {
-    float x, y, z, w;
-} GBEVector4;
-
-typedef struct GBEColor {
-    float r, g, b, a;
-} GBEColor;
-
-typedef struct GBEVertex {
-    GBEVector4 position;
-    GBEColor color;
-} GBEVertex;
-
-typedef struct GBEUniforms {
+typedef struct GBE_Uniforms {
     float angle;
-} GBEUniforms;
+} GBE_Uniforms;
 
 // Now we need the actual triangle geometry. I'm cheating a bit here and choosing to
 // draw a triangle that's already defined in clip space, so we don't need to worry
@@ -49,52 +31,41 @@ typedef struct GBEUniforms {
 // shader.)
 static const size_t kNumVertices = 3;
 
-static const GBEVertex kVertices[] = {
-    { .position = {  0.5,   0.0, 0, 1 }, .color = { 1.0, 0.0, 0.0, 1.0 } },
+static const GBE_Vertex kVertices[] = {
+    { .position = {  0.5,    0.0, 0, 1 }, .color = { 1.0, 0.0, 0.0, 1.0 } },
     { .position = { -0.25,  0.43, 0, 1 }, .color = { 0.0, 1.0, 0.0, 1.0 } },
     { .position = { -0.25, -0.43, 0, 1 }, .color = { 0.0, 0.0, 1.0, 1.0 } },
 };
 
-// Loading shaders is a little involved, so I've moved that out to a standalone function.
-static SDL_AppResult LoadShaders(SDL_Storage *storage, SDL_GPUDevice* device, SDL_GPUShader** vertexShader, SDL_GPUShader** fragmentShader)
-{
-    GBE_LoadShaderInfo loadInfo = {
-        .path = "RotatingTriangle",
-        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-        .entryPoint = "vertex_main",
-        .samplerCount = 0,
-        .uniformBufferCount = 1,
-        .storageBufferCount = 1,
-        .storageTextureCount = 0
-    };
-    SDL_GPUShader* vs = GBE_LoadShader(storage, device, &loadInfo);
-    if (vs == NULL) {
-        return SDL_APP_FAILURE;
-    }
-
-    loadInfo.stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
-    loadInfo.entryPoint = "fragment_main";
-    loadInfo.storageBufferCount = 0;
-    loadInfo.uniformBufferCount = 0;
-
-    SDL_GPUShader* fs = GBE_LoadShader(storage, device, &loadInfo);
-    if (fs == NULL) {
-        return SDL_APP_FAILURE;
-    }
-
-    *vertexShader = vs;
-    *fragmentShader = fs;
-    return SDL_APP_CONTINUE;
-}
-
 static SDL_AppResult BuildPipeline(GBE_AppContext* context)
 {
-    SDL_GPUShader* vertexShader;
-    SDL_GPUShader* fragmentShader;
+    GBE_LoadShaderInfo vertexShaderInfo = {
+        .path = "RotatingTriangle",
+        .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+        .samplerCount = 0,
+        .uniformBufferCount = 1,
+        .storageBufferCount = 0,
+        .storageTextureCount = 0
+    };
 
-    SDL_AppResult rc = LoadShaders(context->titleStorage, context->device, &vertexShader, &fragmentShader);
-    if (rc != SDL_APP_CONTINUE) {
-        return rc;
+    SDL_GPUShader* vertexShader = GBE_LoadShader(context->titleStorage, context->device, &vertexShaderInfo);
+    if (vertexShader == NULL) {
+        return SDL_APP_FAILURE;
+    }
+
+    GBE_LoadShaderInfo fragmentShaderInfo = {
+        .path = "Color",
+        .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+        .samplerCount = 0,
+        .uniformBufferCount = 0,
+        .storageBufferCount = 0,
+        .storageTextureCount = 0
+    };
+
+    SDL_GPUShader* fragmentShader = GBE_LoadShader(context->titleStorage, context->device, &fragmentShaderInfo);
+    if (fragmentShader == NULL) {
+        SDL_ReleaseGPUShader(context->device, vertexShader);
+        return SDL_APP_FAILURE;
     }
 
     // Lots of stuff here! Let's take it one chunk at a time. First, we describe the
@@ -130,12 +101,38 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
         .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE
     };
 
+    // We need to tell the pipeline exactly what shape our input data is going to be
+    // in. Metal will let us get away without this and still work fine! Vulkan and
+    // Direct3D12 will not.
+    SDL_GPUVertexInputState vertexInputState = {
+        .num_vertex_buffers = 1,
+        .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]){{
+            .slot = 0,
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+            .pitch = sizeof(GBE_Vertex)
+        }},
+        .num_vertex_attributes = 2,
+        .vertex_attributes = (SDL_GPUVertexAttribute[]){{
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+            .location = 0,
+            .offset = 0
+        }, {
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+            .location = 1,
+            .offset = sizeof(float) * 4
+        }}
+    };
+
     // That should be enough to create a pipeline! We provide the target info and
     // rasterizer state defined above, we want to draw triangles, and we want to
     // do it using the vertex and fragment shaders we loaded.
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .target_info = targetInfo,
         .rasterizer_state = rasterizerState,
+        .vertex_input_state = vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .vertex_shader = vertexShader,
         .fragment_shader = fragmentShader
@@ -162,8 +159,8 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     // Creating a vertex buffer is easy: all we really need to tell it is what
     // we're going to use it for and how much space to allocate.
     SDL_GPUBufferCreateInfo bufferCreateInfo = {
-        .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-        .size = sizeof(GBEVertex) * kNumVertices
+        .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+        .size = (Uint32)(sizeof(GBE_Vertex) * kNumVertices)
     };
     SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(context->device, &bufferCreateInfo);
 
@@ -172,12 +169,12 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     // copy the data from the transfer buffer into the vertex buffer.
     SDL_GPUTransferBufferCreateInfo transferBufferCreateInfo = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = sizeof(GBEVertex) * kNumVertices
+        .size = (Uint32)(sizeof(GBE_Vertex) * kNumVertices)
     };
     SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(context->device, &transferBufferCreateInfo);
 
-    GBEVertex* vertexPtr = SDL_MapGPUTransferBuffer(context->device, transferBuffer, false);
-    SDL_memcpy(vertexPtr, kVertices, sizeof(GBEVertex) * kNumVertices);
+    GBE_Vertex* vertexPtr = SDL_MapGPUTransferBuffer(context->device, transferBuffer, false);
+    SDL_memcpy(vertexPtr, kVertices, sizeof(GBE_Vertex) * kNumVertices);
     SDL_UnmapGPUTransferBuffer(context->device, transferBuffer);
     vertexPtr = NULL;
 
@@ -191,7 +188,7 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     SDL_GPUBufferRegion targetBuffer = {
         .buffer = vertexBuffer,
         .offset = 0,
-        .size = sizeof(GBEVertex) * kNumVertices
+        .size = (Uint32)(sizeof(GBE_Vertex) * kNumVertices)
     };
 
     SDL_UploadToGPUBuffer(copyPass, &sourceBuffer, &targetBuffer, true);
@@ -232,7 +229,7 @@ SDL_AppResult SDL_AppIterate(void* appState)
     // time since the program started. I'm aiming for one complete
     // rotation every 1.5 seconds.
     float time = (SDL_GetTicks() % 1500) / 750.0f;
-    GBEUniforms uniforms = {
+    GBE_Uniforms uniforms = {
         .angle = time * M_PI
     };
 
@@ -256,7 +253,7 @@ SDL_AppResult SDL_AppIterate(void* appState)
             .cycle = true,
             .load_op = SDL_GPU_LOADOP_CLEAR,
             .store_op = SDL_GPU_STOREOP_STORE,
-            .clear_color = {0.12, 0.12, 0.12, 1}};
+            .clear_color = {0.12f, 0.12f, 0.12f, 1.0f}};
 
         SDL_GPURenderPass* renderPass;
         renderPass = SDL_BeginGPURenderPass(cmdBuf, &targetInfo, 1, NULL);
@@ -270,8 +267,11 @@ SDL_AppResult SDL_AppIterate(void* appState)
         SDL_PushGPUVertexUniformData(cmdBuf, 0, &uniforms, sizeof(uniforms));
 
         // The API takes an array of vertex buffer pointers, not a single one.
-        SDL_GPUBuffer* vertexBuffers[] = { context->vertexBuffer };
-        SDL_BindGPUVertexStorageBuffers(renderPass, 0, vertexBuffers, 1);
+        SDL_GPUBufferBinding vertexBufferBinding = {
+            .buffer = context->vertexBuffer,
+            .offset = 0
+        };
+        SDL_BindGPUVertexBuffers(renderPass, 0, &vertexBufferBinding, 1);
 
         // We have 3 vertices to draw.
         SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);

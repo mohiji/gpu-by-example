@@ -8,7 +8,11 @@
 //  Cornet's SDL_GPU examples repo:
 //  https://github.com/TheSpydog/SDL_gpu_examples/
 
-#include "Shaders.h"
+#include "GBE_Shaders.h"
+
+// Loading shaders is a little involved, in particular because we need to support
+// 2 types of shaders (vertex and fragment/pixel) and 3 backends (Direct3D 12,
+// Metal, and Vulkan).
 
 SDL_GPUShader* GBE_LoadShader(
     SDL_Storage* storage,
@@ -25,19 +29,23 @@ SDL_GPUShader* GBE_LoadShader(
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
 
     char fullPath[256];
+    const char* extraExtension = loadShaderInfo->stage == SDL_GPU_SHADERSTAGE_VERTEX ? "vert" : "frag";
+    const char* entryPoint = "main";
     if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%s.spv", loadShaderInfo->path);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.spv", loadShaderInfo->path, extraExtension);
         format = SDL_GPU_SHADERFORMAT_SPIRV;
     } else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%s.msl", loadShaderInfo->path);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.msl", loadShaderInfo->path, extraExtension);
+        entryPoint = loadShaderInfo->stage == SDL_GPU_SHADERSTAGE_VERTEX ? "vertex_main" : "fragment_main";
         format = SDL_GPU_SHADERFORMAT_MSL;
     } else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%s.dxil", loadShaderInfo->path);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.dxil", loadShaderInfo->path, extraExtension);
         format = SDL_GPU_SHADERFORMAT_DXIL;
     } else {
         SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Unrecognized backend shader format!");
         return NULL;
     }
+    SDL_Log("Loading shader file %s...", fullPath);
 
     Uint64 codeSize;
     void* code;
@@ -56,7 +64,7 @@ SDL_GPUShader* GBE_LoadShader(
     SDL_GPUShaderCreateInfo shaderInfo = {
         .code = code,
         .code_size = codeSize,
-        .entrypoint = loadShaderInfo->entryPoint,
+        .entrypoint = entryPoint,
         .format = format,
         .stage = loadShaderInfo->stage,
         .num_samplers = loadShaderInfo->samplerCount,

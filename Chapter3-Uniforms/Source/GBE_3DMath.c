@@ -96,44 +96,44 @@ GBE_Vector3 GBE_Vector3CrossProduct(GBE_Vector3 a, GBE_Vector3 b)
 GBE_Vector3 GBE_Matrix4x4TransformVector3(GBE_Vector3 v, GBE_Matrix4x4 m)
 {
     GBE_Vector3 r;
-    r.x = v.x * m.m00 + v.y * m.m10 + v.z * m.m20 + m.m30;
-    r.y = v.x * m.m01 + v.y * m.m11 + v.z * m.m21 + m.m31;
-    r.z = v.x * m.m02 + v.y * m.m12 + v.z * m.m22 + m.m32;
+    r.x = v.x * m.m11 + v.y * m.m21 + v.z * m.m31 + m.m41;
+    r.y = v.x * m.m12 + v.y * m.m22 + v.z * m.m32 + m.m42;
+    r.z = v.x * m.m13 + v.y * m.m23 + v.z * m.m33 + m.m43;
     return r;
 }
 
 GBE_Vector4 GBE_Matrix4x4TransformVector4(GBE_Vector4 v, GBE_Matrix4x4 m)
 {
     GBE_Vector4 r;
-    r.x = v.x * m.m00 + v.y * m.m10 + v.z * m.m20 + v.w * m.m30;
-    r.y = v.x * m.m01 + v.y * m.m11 + v.z * m.m21 + v.w * m.m31;
-    r.z = v.x * m.m02 + v.y * m.m12 + v.z * m.m22 + v.w * m.m32;
-    r.w = v.x * m.m03 + v.y * m.m13 + v.z * m.m23 + v.w * m.m33;
+    r.x = v.x * m.m11 + v.y * m.m21 + v.z * m.m31 + v.w * m.m41;
+    r.y = v.x * m.m12 + v.y * m.m22 + v.z * m.m32 + v.w * m.m42;
+    r.z = v.x * m.m13 + v.y * m.m23 + v.z * m.m33 + v.w * m.m43;
+    r.w = v.x * m.m14 + v.y * m.m24 + v.z * m.m34 + v.w * m.m44;
     return r;
 }
 
 GBE_Matrix4x4 GBE_Matrix4x4Multiply(GBE_Matrix4x4 a, GBE_Matrix4x4 b)
 {
     GBE_Matrix4x4 m;
-    m.m00 = a.m00 * b.m00 + a.m01 * b.m10 + a.m02 * b.m20 + a.m03 * b.m30;
-    m.m01 = a.m00 * b.m01 + a.m01 * b.m11 + a.m02 * b.m21 + a.m03 * b.m31;
-    m.m02 = a.m00 * b.m02 + a.m01 * b.m12 + a.m02 * b.m22 + a.m03 * b.m32;
-    m.m03 = a.m00 * b.m03 + a.m01 * b.m13 + a.m02 * b.m23 + a.m03 * b.m33;
+    m.m11 = a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31 + a.m14 * b.m41;
+    m.m12 = a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32 + a.m14 * b.m42;
+    m.m13 = a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33 + a.m14 * b.m43;
+    m.m14 = a.m11 * b.m14 + a.m12 * b.m24 + a.m13 * b.m34 + a.m14 * b.m44;
 
-    m.m10 = a.m10 * b.m00 + a.m11 * b.m10 + a.m12 * b.m20 + a.m13 * b.m30;
-    m.m11 = a.m10 * b.m01 + a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31;
-    m.m12 = a.m10 * b.m02 + a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32;
-    m.m13 = a.m10 * b.m03 + a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33;
+    m.m21 = a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31 + a.m24 * b.m41;
+    m.m22 = a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32 + a.m24 * b.m42;
+    m.m23 = a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33 + a.m24 * b.m43;
+    m.m24 = a.m21 * b.m14 + a.m22 * b.m24 + a.m23 * b.m34 + a.m24 * b.m44;
 
-    m.m20 = a.m20 * b.m00 + a.m21 * b.m10 + a.m22 * b.m20 + a.m23 * b.m30;
-    m.m21 = a.m20 * b.m01 + a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31;
-    m.m22 = a.m20 * b.m02 + a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32;
-    m.m23 = a.m20 * b.m03 + a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33;
+    m.m31 = a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31 + a.m34 * b.m41;
+    m.m32 = a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32 + a.m34 * b.m42;
+    m.m33 = a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33 + a.m34 * b.m43;
+    m.m34 = a.m31 * b.m14 + a.m32 * b.m24 + a.m33 * b.m34 + a.m34 * b.m44;
 
-    m.m30 = a.m30 * b.m00 + a.m31 * b.m10 + a.m32 * b.m20 + a.m33 * b.m30;
-    m.m31 = a.m30 * b.m01 + a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31;
-    m.m32 = a.m30 * b.m02 + a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32;
-    m.m33 = a.m30 * b.m03 + a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33;
+    m.m41 = a.m41 * b.m11 + a.m42 * b.m21 + a.m43 * b.m31 + a.m44 * b.m41;
+    m.m42 = a.m41 * b.m12 + a.m42 * b.m22 + a.m43 * b.m32 + a.m44 * b.m42;
+    m.m43 = a.m41 * b.m13 + a.m42 * b.m23 + a.m43 * b.m33 + a.m44 * b.m43;
+    m.m44 = a.m41 * b.m14 + a.m42 * b.m24 + a.m43 * b.m34 + a.m44 * b.m44;
 
     return m;
 }
@@ -205,9 +205,9 @@ GBE_Matrix4x4 GBE_Matrix4x4Perspective(float aspect, float fovy, float near, flo
 GBE_Matrix4x4 GBE_Matrix4x4Transpose(GBE_Matrix4x4 m)
 {
     return (GBE_Matrix4x4) {
-        m.m00, m.m10, m.m20, m.m30,
-        m.m01, m.m11, m.m21, m.m31,
-        m.m02, m.m12, m.m22, m.m32,
-        m.m03, m.m13, m.m23, m.m33
+        m.m11, m.m21, m.m31, m.m41,
+        m.m12, m.m22, m.m32, m.m42,
+        m.m13, m.m23, m.m33, m.m43,
+        m.m14, m.m24, m.m34, m.m44
     };
 }

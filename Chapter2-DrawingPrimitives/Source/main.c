@@ -172,7 +172,7 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     // Creating a vertex buffer is easy: all we really need to tell it is what
     // we're going to use it for and how much space to allocate.
     SDL_GPUBufferCreateInfo bufferCreateInfo = {
-        .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+        .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = (Uint32)(sizeof(GBEVertex) * kNumVertices)
     };
     SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(context->device, &bufferCreateInfo);
