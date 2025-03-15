@@ -8,6 +8,10 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+
+// Why in the world does Visual Studio not define M_PI and the like
+// without this extra bit?
+#define _USE_MATH_DEFINES
 #include <math.h> // for M_PI
 
 // I'm trying to keep the interesting / relevant parts of each chapter

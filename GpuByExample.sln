@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chapter1-GettingStarted", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chapter2-DrawingPrimitives", "Chapter2-DrawingPrimitives\Chapter2-DrawingPrimitives.vcxproj", "{7D8C2B96-0112-4229-9DFD-727E5775C025}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chapter3-Uniforms", "Chapter3-Uniforms\Chapter3-Uniforms.vcxproj", "{86999D36-D095-42EE-8345-D1A7BC58853B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{7D8C2B96-0112-4229-9DFD-727E5775C025}.Release|x64.Build.0 = Release|x64
 		{7D8C2B96-0112-4229-9DFD-727E5775C025}.Release|x86.ActiveCfg = Release|Win32
 		{7D8C2B96-0112-4229-9DFD-727E5775C025}.Release|x86.Build.0 = Release|Win32
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Debug|x64.ActiveCfg = Debug|x64
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Debug|x64.Build.0 = Debug|x64
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Debug|x86.ActiveCfg = Debug|Win32
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Debug|x86.Build.0 = Debug|Win32
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Release|x64.ActiveCfg = Release|x64
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Release|x64.Build.0 = Release|x64
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Release|x86.ActiveCfg = Release|Win32
+		{86999D36-D095-42EE-8345-D1A7BC58853B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,8 +18,6 @@ const GBE_Matrix4x4 kIdentityMatrix = {
     0, 0, 0, 1
 };
 
-#pragma mark GBE_Vector3
-
 GBE_Vector3 GBE_Vector3Add(GBE_Vector3 a, GBE_Vector3 b)
 {
     return (GBE_Vector3) {
@@ -91,8 +89,6 @@ GBE_Vector3 GBE_Vector3CrossProduct(GBE_Vector3 a, GBE_Vector3 b)
     };
 }
 
-#pragma mark - GBE_Matrix4x4
-
 GBE_Vector3 GBE_Matrix4x4TransformVector3(GBE_Vector3 v, GBE_Matrix4x4 m)
 {
     GBE_Vector3 r;
@@ -160,8 +156,8 @@ GBE_Matrix4x4 GBE_Matrix4x4UniformScale(float s)
 
 GBE_Matrix4x4 GBE_Matrix4x4RotateAxisAngle(GBE_Vector3 axis, float angleInRadians)
 {
-    float c = cos(angleInRadians);
-    float s = sin(angleInRadians);
+    float c = cosf(angleInRadians);
+    float s = sinf(angleInRadians);
 
     GBE_Vector3 X;
     X.x = axis.x * axis.x + (1 - axis.x * axis.x) * c;
@@ -188,7 +184,7 @@ GBE_Matrix4x4 GBE_Matrix4x4RotateAxisAngle(GBE_Vector3 axis, float angleInRadian
 
 GBE_Matrix4x4 GBE_Matrix4x4Perspective(float aspect, float fovy, float near, float far)
 {
-    float yScale = 1 / tan(fovy * 0.5);
+    float yScale = 1 / tan(fovy * 0.5f);
     float xScale = yScale / aspect;
     float zRange = far - near;
     float zScale = -(far + near) / zRange;
