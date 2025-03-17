@@ -34,14 +34,22 @@ SDL_GPUShader* GBE_LoadShader(
     if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
         SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.spv", loadShaderInfo->path, extraExtension);
         format = SDL_GPU_SHADERFORMAT_SPIRV;
-    } else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
+    }
+    else if (backendFormats & SDL_GPU_SHADERFORMAT_METALLIB) {
+        SDL_strlcpy(fullPath, "default.metallib", 256);
+        entryPoint = loadShaderInfo->stage == SDL_GPU_SHADERSTAGE_VERTEX ? "vertex_main" : "fragment_main";
+        format = SDL_GPU_SHADERFORMAT_METALLIB;
+    }
+    else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
         SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.msl", loadShaderInfo->path, extraExtension);
         entryPoint = loadShaderInfo->stage == SDL_GPU_SHADERSTAGE_VERTEX ? "vertex_main" : "fragment_main";
         format = SDL_GPU_SHADERFORMAT_MSL;
-    } else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
+    }
+    else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
         SDL_snprintf(fullPath, sizeof(fullPath), "%s.%s.dxil", loadShaderInfo->path, extraExtension);
         format = SDL_GPU_SHADERFORMAT_DXIL;
-    } else {
+    }
+    else {
         SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Unrecognized backend shader format!");
         return NULL;
     }

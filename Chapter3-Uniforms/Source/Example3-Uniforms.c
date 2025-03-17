@@ -25,26 +25,34 @@ typedef struct GBE_Vertex {
     GBE_Vector4 color;
 } GBE_Vertex;
 
-typedef struct GBE_Uniforms {
-    float angle;
-} GBE_Uniforms;
+typedef uint16_t GBE_Index;
 
-// Now we need the actual triangle geometry. I'm cheating a bit here and choosing to
-// draw a triangle that's already defined in clip space, so we don't need to worry
-// about any math yet. (Or more specifically, providing a transformation to the vertex
-// shader.)
-static const size_t kNumVertices = 3;
+static const size_t kNumVertices = 8;
+static const size_t kNumIndices = 36;
+static const GBE_Vertex kVertices[kNumVertices] = {
+    { .position = { -1,  1,  1, 1}, .color = { 0, 1, 1, 1 } },
+    { .position = { -1, -1,  1, 1}, .color = { 0, 0, 1, 1 } },
+    { .position = {  1, -1,  1, 1}, .color = { 1, 0, 1, 1 } },
+    { .position = {  1,  1,  1, 1}, .color = { 1, 1, 1, 1 } },
+    { .position = { -1,  1, -1, 1}, .color = { 0, 1, 0, 1 } },
+    { .position = { -1, -1, -1, 1}, .color = { 0, 0, 0, 1 } },
+    { .position = {  1, -1, -1, 1}, .color = { 1, 0, 0, 1 } },
+    { .position = {  1,  1, -1, 1}, .color = { 1, 1, 0, 1 } }
+};
 
-static const GBE_Vertex kVertices[] = {
-    { .position = {  0.5,    0.0, 0, 1 }, .color = { 1.0, 0.0, 0.0, 1.0 } },
-    { .position = { -0.25,  0.43, 0, 1 }, .color = { 0.0, 1.0, 0.0, 1.0 } },
-    { .position = { -0.25, -0.43, 0, 1 }, .color = { 0.0, 0.0, 1.0, 1.0 } },
+static const uint16_t kIndices[kNumIndices] = {
+    3, 2, 6, 6, 7, 3,
+    4, 5, 1, 1, 0, 4,
+    4, 0, 3, 3, 7, 4,
+    1, 5, 6, 6, 2, 1,
+    0, 1, 2, 2, 3, 0,
+    7, 6, 5, 5, 4, 7
 };
 
 static SDL_AppResult BuildPipeline(GBE_AppContext* context)
 {
     GBE_LoadShaderInfo vertexShaderInfo = {
-        .path = "RotatingTriangle",
+        .path = "SpinningCube",
         .stage = SDL_GPU_SHADERSTAGE_VERTEX,
         .samplerCount = 0,
         .uniformBufferCount = 1,
@@ -58,7 +66,7 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
     }
 
     GBE_LoadShaderInfo fragmentShaderInfo = {
-        .path = "Color",
+        .path = "SpinningCube",
         .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
         .samplerCount = 0,
         .uniformBufferCount = 0,
@@ -205,6 +213,52 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     return SDL_APP_CONTINUE;
 }
 
+static SDL_AppResult BuildIndexBuffer(GBE_AppContext* context)
+{
+    // This is pretty much the same thing as BuildVertexBuffer, except we're working with
+    // GBE_Index instead of GBE_Vertex.
+    SDL_GPUBufferCreateInfo createInfo = {
+        // NOTE: Index buffers use a different usage type than vertex buffers
+        .usage = SDL_GPU_BUFFERUSAGE_INDEX,
+        .size = sizeof(GBE_Index) * kNumIndices
+    };
+    SDL_GPUBuffer* indexBuffer = SDL_CreateGPUBuffer(context->device, &createInfo);
+
+    // Copying data in works the same way.
+    SDL_GPUTransferBufferCreateInfo transferBufferCreateInfo = {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        .size = sizeof(GBE_Index) * kNumIndices
+    };
+    SDL_GPUTransferBuffer* indexTransferBuffer = SDL_CreateGPUTransferBuffer(context->device, &transferBufferCreateInfo);
+
+    // Copy our static indices over into GPU memory.
+    GBE_Index* indexPtr = SDL_MapGPUTransferBuffer(context->device, indexTransferBuffer, false);
+    SDL_memcpy(indexPtr, kIndices, sizeof(GBE_Index) * kNumIndices);
+    SDL_UnmapGPUTransferBuffer(context->device, indexTransferBuffer);
+    indexPtr = NULL;
+
+    SDL_GPUCommandBuffer* cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
+    SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(cmdBuf);
+    SDL_GPUTransferBufferLocation sourceBuffer = {
+        .transfer_buffer = indexTransferBuffer,
+        .offset = 0
+    };
+    SDL_GPUBufferRegion targetBuffer = {
+        .buffer = indexBuffer,
+        .offset = 0,
+        .size = (Uint32)(sizeof(GBE_Index) * kNumIndices)
+    };
+
+    SDL_UploadToGPUBuffer(copyPass, &sourceBuffer, &targetBuffer, true);
+    SDL_EndGPUCopyPass(copyPass);
+    SDL_SubmitGPUCommandBuffer(cmdBuf);
+
+    SDL_ReleaseGPUTransferBuffer(context->device, indexTransferBuffer);
+    context->indexBuffer = indexBuffer;
+
+    return SDL_APP_CONTINUE;
+}
+
 SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
 {
     SDL_SetAppMetadata("GPU by Example - Uniforms", "0.0.1", "net.jonathanfischer.GpuByExample3");
@@ -222,20 +276,64 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
     }
 
     rc = BuildVertexBuffer(appContext);
+    if (rc != SDL_APP_CONTINUE) {
+        return SDL_APP_FAILURE;
+    }
+
+    rc = BuildIndexBuffer(appContext);
     return rc;
+}
+
+static void frameStep(GBE_AppContext* appContext)
+{
+    // Calculate how many milliseconds have passed since the last time we did this.
+    Uint64 currentFrameTime = SDL_GetTicks();
+    Uint64 deltaFrameTime = currentFrameTime - appContext->lastFrameTime;
+
+    // If somehow we're running too slowly to maintain a decent frame time (or more likely,
+    // we spent time paused in a debugger), cap the amount of time we consider to have
+    // passed to 1/5 of a second so we don't have any weird jumps.
+    if (deltaFrameTime > 200) {
+        deltaFrameTime = 200;
+    }
+
+    // And keep track of how much time has passed overall; we'll use it below when
+    // calculating how much to scale the cube by.
+    appContext->elapsedTime += deltaFrameTime;
+
+    // Keep the cube spinning along
+    float dt = deltaFrameTime / 1000.0f;
+    appContext->rotationX += dt * (M_PI / 2);
+    appContext->rotationY += dt * (M_PI / 3);
+
+    float scaleFactor = sinf(5 * appContext->elapsedTime / 1000.0f) * 0.25 + 1;
+    GBE_Vector3 xAxis = { 1, 0, 0 };
+    GBE_Vector3 yAxis = { 0, 1, 0 };
+    GBE_Matrix4x4 xRot = GBE_Matrix4x4RotateAxisAngle(xAxis, appContext->rotationX);
+    GBE_Matrix4x4 yRot = GBE_Matrix4x4RotateAxisAngle(yAxis, appContext->rotationY);
+    GBE_Matrix4x4 scale = GBE_Matrix4x4UniformScale(scaleFactor);
+    GBE_Matrix4x4 modelMatrix = GBE_Matrix4x4Multiply(GBE_Matrix4x4Multiply(xRot, yRot), scale);
+
+    GBE_Vector3 cameraTranslation = { 0, 0, -5 };
+    GBE_Matrix4x4 viewMatrix = GBE_Matrix4x4Translation(cameraTranslation);
+
+    int viewportWidth, viewportHeight;
+    SDL_GetWindowSize(appContext->window, &viewportWidth, &viewportHeight);
+    float aspect = (float)viewportWidth / viewportHeight;
+    float fov = (2 * M_PI) / 5;
+    float near = 1;
+    float far = 100;
+    GBE_Matrix4x4 projectionMatrix = GBE_Matrix4x4Perspective(aspect, fov, near, far);
+
+    appContext->uniforms.modelViewProjectionMatrix = GBE_Matrix4x4Multiply(GBE_Matrix4x4Multiply(modelMatrix, viewMatrix), projectionMatrix);
+
+    appContext->lastFrameTime = currentFrameTime;
 }
 
 SDL_AppResult SDL_AppIterate(void* appState)
 {
     GBE_AppContext* context = (GBE_AppContext*)appState;
-
-    // Calculate a rotation angle for the triangle, based on elapsed
-    // time since the program started. I'm aiming for one complete
-    // rotation every 1.5 seconds.
-    float time = (SDL_GetTicks() % 1500) / 750.0f;
-    GBE_Uniforms uniforms = {
-        .angle = time * M_PI
-    };
+    frameStep(context);
 
     SDL_GPUCommandBuffer* cmdBuf;
     cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
@@ -261,14 +359,8 @@ SDL_AppResult SDL_AppIterate(void* appState)
 
         SDL_GPURenderPass* renderPass;
         renderPass = SDL_BeginGPURenderPass(cmdBuf, &targetInfo, 1, NULL);
-
-        // OK! Finally time to draw that triangle! We've begun our render pass as before, now we bind
-        // the pipeline we've created, supply it with a vertex buffer, and tell it to draw some primitives,
-        // telling it the number of vertices to work with.
         SDL_BindGPUGraphicsPipeline(renderPass, context->pipeline);
-
-        // Provide any uniforms we'll be using for this next set of primitives.
-        SDL_PushGPUVertexUniformData(cmdBuf, 0, &uniforms, sizeof(uniforms));
+        SDL_PushGPUVertexUniformData(cmdBuf, 0, &(context->uniforms), sizeof(GBE_Uniforms));
 
         // The API takes an array of vertex buffer pointers, not a single one.
         SDL_GPUBufferBinding vertexBufferBinding = {
@@ -277,9 +369,12 @@ SDL_AppResult SDL_AppIterate(void* appState)
         };
         SDL_BindGPUVertexBuffers(renderPass, 0, &vertexBufferBinding, 1);
 
-        // We have 3 vertices to draw.
-        SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
-
+        SDL_GPUBufferBinding indexBinding = {
+            .buffer = context->indexBuffer,
+            .offset = 0
+        };
+        SDL_BindGPUIndexBuffer(renderPass, &indexBinding, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+        SDL_DrawGPUIndexedPrimitives(renderPass, kNumIndices, 1, 0, 0, 0);
         SDL_EndGPURenderPass(renderPass);
     }
 

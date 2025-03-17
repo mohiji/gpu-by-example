@@ -17,16 +17,19 @@ SDL_AppResult GBE_Init(GBE_AppContext** appContext)
 
     SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV |
                                         SDL_GPU_SHADERFORMAT_DXIL |
+                                        SDL_GPU_SHADERFORMAT_METALLIB |
                                         SDL_GPU_SHADERFORMAT_MSL;
 
-    SDL_GPUDevice* device = SDL_CreateGPUDevice(shaderFormats, false, NULL);
+    SDL_GPUDevice* device = SDL_CreateGPUDevice(shaderFormats, true, NULL);
     if (device == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,  "Couldn't not create GPU device: %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't not create GPU device: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
+    SDL_Log("Using %s GPU implementation.", SDL_GetGPUDeviceDriver(device));
+
     SDL_WindowFlags windowFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
-    SDL_Window* window = SDL_CreateWindow("GPU by Example - Drawing a triangle", 800, 600, windowFlags);
+    SDL_Window* window = SDL_CreateWindow("GPU by Example - Uniforms", 800, 600, windowFlags);
 
     if (window == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
@@ -58,6 +61,7 @@ SDL_AppResult GBE_Init(GBE_AppContext** appContext)
     context->window = window;
     context->device = device;
     context->titleStorage = storage;
+    context->lastFrameTime = SDL_GetTicks();
 
     *appContext = context;
     return SDL_APP_CONTINUE;

@@ -9,6 +9,11 @@
 #define AppContext_h
 
 #include <SDL3/SDL.h>
+#include "GBE_3DMath.h"
+
+typedef struct GBE_Uniforms {
+    GBE_Matrix4x4 modelViewProjectionMatrix;
+} GBE_Uniforms;
 
 typedef struct GBE_AppContext {
     SDL_Window* window;
@@ -17,6 +22,14 @@ typedef struct GBE_AppContext {
 
     SDL_GPUGraphicsPipeline* pipeline;
     SDL_GPUBuffer* vertexBuffer;
+    SDL_GPUBuffer* indexBuffer;
+
+    Uint64 lastFrameTime;
+    Uint64 elapsedTime;
+    float rotationX;
+    float rotationY;
+
+    GBE_Uniforms uniforms;
 } GBE_AppContext;
 
 SDL_AppResult GBE_Init(GBE_AppContext** context);
