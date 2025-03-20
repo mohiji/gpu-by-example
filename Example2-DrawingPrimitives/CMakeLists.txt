@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(gbe-chapter1-getting-started)
+project(gbe-example2-drawing-primitives)
 
 # set the output directory for built objects.
 # This makes sure that the dynamic library goes into the build directory automatically.
@@ -10,7 +10,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 add_subdirectory(../Libraries/SDL3 ./build EXCLUDE_FROM_ALL)
 
 # Create your game executable target as usual
-add_executable(gbe-chapter1-getting-started Source/main.c)
+add_executable(gbe-example2-drawing-primitives
+  Source/Example2.c
+  Source/AppContext.c
+  Source/Shaders.c)
 
 # Link to the actual SDL3 library.
-target_link_libraries(gbe-chapter1-getting-started SDL3::SDL3)
+target_link_libraries(gbe-example2-drawing-primitives SDL3::SDL3)
+

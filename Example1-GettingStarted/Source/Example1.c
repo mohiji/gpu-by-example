@@ -29,7 +29,7 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
     // This isn't strictly necessary, but if you provide
     // a little bit of metadata here SDL will use it in
     // things like the About window on macOS.
-    SDL_SetAppMetadata("GPU by Example - Scaffolding", "0.0.1", "net.jonathanfischer.GpuByExamplePart0");
+    SDL_SetAppMetadata("GPU by Example - Getting Started", "0.0.1", "net.jonathanfischer.GpuByExample1");
 
     // Initialize the video and event subsystems
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {

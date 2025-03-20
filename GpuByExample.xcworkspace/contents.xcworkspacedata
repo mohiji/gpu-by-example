@@ -2,12 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Chapter1-GettingStarted/Chapter1-GettingStarted.xcodeproj">
+      location = "group:Example1-GettingStarted/Example1-GettingStarted.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Chapter2-DrawingPrimitives/Chapter2-DrawingPrimitives.xcodeproj">
+      location = "group:Example2-DrawingPrimitives/Example2-DrawingPrimitives.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Chapter3-Uniforms/Chapter3-Uniforms.xcodeproj">
+      location = "group:Example3-Uniforms/Example3-Uniforms.xcodeproj">
    </FileRef>
 </Workspace>

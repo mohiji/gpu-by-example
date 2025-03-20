@@ -26,7 +26,7 @@ SDL_AppResult GBE_Init(GBE_AppContext** appContext)
     }
 
     SDL_WindowFlags windowFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
-    SDL_Window* window = SDL_CreateWindow("GPU by Example - Drawing a triangle", 800, 600, windowFlags);
+    SDL_Window* window = SDL_CreateWindow("GPU by Example - Drawing Primitives", 800, 600, windowFlags);
 
     if (window == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());

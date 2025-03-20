@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{7d8c2b96-0112-4229-9dfd-727e5775c025}</ProjectGuid>
-    <RootNamespace>Chapter2DrawingPrimitives</RootNamespace>
+    <ProjectGuid>{bf6965a7-b11b-4ce3-b372-166bef6e24e8}</ProjectGuid>
+    <RootNamespace>Example1-GettingStarted</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,21 +70,23 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)\Libraries\Windows\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Libraries\Windows\lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
+    <IncludePath>$(SolutionDir)\Libraries\Windows\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Libraries\Windows\lib\x86;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(SolutionDir)\Libraries\Windows\lib\x86;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
+    <IncludePath>$(SolutionDir)\Libraries\Windows\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Libraries\Windows\lib\x86;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
-    <LibraryPath>$(SolutionDir)\Libraries\Windows\lib/x64;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(SolutionDir)\Libraries\Windows\lib\x86;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
-    <LibraryPath>$(SolutionDir)\Libraries\Windows\lib/x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\Libraries\Windows\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Libraries\Windows\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -147,13 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\AppContext.c" />
     <ClCompile Include="Source\main.c" />
-    <ClCompile Include="Source\Shaders.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Source\AppContext.h" />
-    <ClInclude Include="Source\Shaders.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
