@@ -14,10 +14,7 @@
 // 2 types of shaders (vertex and fragment/pixel) and 3 backends (Direct3D 12,
 // Metal, and Vulkan).
 
-SDL_GPUShader* GBE_LoadShader(
-    SDL_Storage* storage,
-    SDL_GPUDevice* device,
-    const GBE_LoadShaderInfo* loadShaderInfo)
+SDL_GPUShader* GBE_LoadShader(GBE_Context* context, const GBE_LoadShaderInfo* loadShaderInfo)
 {
     if (loadShaderInfo->stage != SDL_GPU_SHADERSTAGE_VERTEX &&
         loadShaderInfo->stage != SDL_GPU_SHADERSTAGE_FRAGMENT) {
@@ -25,7 +22,7 @@ SDL_GPUShader* GBE_LoadShader(
         return NULL;
     }
 
-    SDL_GPUShaderFormat backendFormats = SDL_GetGPUShaderFormats(device);
+    SDL_GPUShaderFormat backendFormats = SDL_GetGPUShaderFormats(context->device);
     SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
 
     char fullPath[256];
@@ -57,13 +54,13 @@ SDL_GPUShader* GBE_LoadShader(
 
     Uint64 codeSize;
     void* code;
-    if (!SDL_GetStorageFileSize(storage, fullPath, &codeSize)) {
+    if (!SDL_GetStorageFileSize(context->titleStorage, fullPath, &codeSize)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to determine size of file '%s': %s", fullPath, SDL_GetError());
         return NULL;
     }
 
     code = SDL_malloc(codeSize);
-    if (!SDL_ReadStorageFile(storage, fullPath, code, codeSize)) {
+    if (!SDL_ReadStorageFile(context->titleStorage, fullPath, code, codeSize)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to read file '%s': %s", fullPath, SDL_GetError());
         SDL_free(code);
         return NULL;
@@ -81,7 +78,7 @@ SDL_GPUShader* GBE_LoadShader(
         .num_storage_textures = loadShaderInfo->storageTextureCount
     };
 
-    SDL_GPUShader* shader = SDL_CreateGPUShader(device, &shaderInfo);
+    SDL_GPUShader* shader = SDL_CreateGPUShader(context->device, &shaderInfo);
     if (shader == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create shader: %s", SDL_GetError());
     }

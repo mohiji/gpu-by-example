@@ -1,14 +1,17 @@
 //
-//  AppContext.c
-//  GpuByExample-Part1
+//  GBE_Init.c
+//  GBECommon
 //
-//  Created by Jonathan Fischer on 3/10/25.
+//  Created by Jonathan Fischer on 3/20/25.
 //
 
-#include "AppContext.h"
+#include <GBECommon/GBE_Init.h>
 
-SDL_AppResult GBE_Init(GBE_AppContext** appContext)
+SDL_AppResult GBE_CommonInit(GBE_Context* appContext, const char* windowTitle)
 {
+    SDL_assert(appContext != NULL);
+    SDL_assert(windowTitle != NULL);
+
     // Initialize the video and event subsystems
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
@@ -29,7 +32,7 @@ SDL_AppResult GBE_Init(GBE_AppContext** appContext)
     SDL_Log("Using %s GPU implementation.", SDL_GetGPUDeviceDriver(device));
 
     SDL_WindowFlags windowFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
-    SDL_Window* window = SDL_CreateWindow("GPU by Example - Uniforms", 800, 600, windowFlags);
+    SDL_Window* window = SDL_CreateWindow(windowTitle, 800, 600, windowFlags);
 
     if (window == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window: %s", SDL_GetError());
@@ -56,40 +59,27 @@ SDL_AppResult GBE_Init(GBE_AppContext** appContext)
         SDL_Delay(1);
     }
 
-    // Switched to calloc for safety's sake; now I know it's zero-initialized.
-    GBE_AppContext* context = SDL_calloc(1, sizeof(GBE_AppContext));
-    context->window = window;
-    context->device = device;
-    context->titleStorage = storage;
-    context->lastFrameTime = SDL_GetTicks();
-
-    *appContext = context;
+    appContext->window = window;
+    appContext->device = device;
+    appContext->titleStorage = storage;
     return SDL_APP_CONTINUE;
 }
 
-void GBE_Cleanup(GBE_AppContext* context)
+void GBE_Quit(GBE_Context* appContext)
 {
-    if (context->titleStorage != NULL) {
-        SDL_CloseStorage(context->titleStorage);
+    if (appContext->titleStorage != NULL) {
+        SDL_CloseStorage(appContext->titleStorage);
     }
 
-    if (context->device != NULL) {
-        if (context->window != NULL) {
-            SDL_ReleaseWindowFromGPUDevice(context->device, context->window);
-            SDL_DestroyWindow(context->window);
+    if (appContext->device != NULL) {
+        if (appContext->window != NULL) {
+            SDL_ReleaseWindowFromGPUDevice(appContext->device, appContext->window);
+            SDL_DestroyWindow(appContext->window);
         }
 
-        if (context->pipeline != NULL) {
-            SDL_ReleaseGPUGraphicsPipeline(context->device, context->pipeline);
-        }
-
-        if (context->vertexBuffer != NULL) {
-            SDL_ReleaseGPUBuffer(context->device, context->vertexBuffer);
-        }
-
-        SDL_DestroyGPUDevice(context->device);
+        SDL_DestroyGPUDevice(appContext->device);
     }
 
-    SDL_free(context);
     SDL_Quit();
 }
+

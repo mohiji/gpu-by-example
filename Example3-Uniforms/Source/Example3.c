@@ -8,28 +8,43 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <GBECommon/GBE_3DMath.h>
+#include <GBECommon/GBE_Init.h>
+#include <GBECommon/GBE_Context.h>
+#include <GBECommon/GBE_Shaders.h>
 
 // Why in the world does Visual Studio not define M_PI and the like
 // without this extra bit?
 #define _USE_MATH_DEFINES
 #include <math.h> // for M_PI
 
-// I'm trying to keep the interesting / relevant parts of each chapter
-// in main.c, and moving stuff we've already seen out to other files.
-#include "AppContext.h"
-#include "GBE_3DMath.h"
-#include "GBE_Shaders.h"
-
-typedef struct GBE_Vertex {
+typedef struct Vertex {
     GBE_Vector4 position;
     GBE_Vector4 color;
-} GBE_Vertex;
+} Vertex;
 
-typedef uint16_t GBE_Index;
+typedef struct Uniforms {
+    GBE_Matrix4x4 modelViewProjectionMatrix;
+} Uniforms;
+
+typedef struct AppContext {
+    GBE_Context context;
+
+    SDL_GPUGraphicsPipeline* pipeline;
+    SDL_GPUBuffer* vertexBuffer;
+    SDL_GPUBuffer* indexBuffer;
+
+    Uint64 lastFrameTime;
+    Uint64 elapsedTime;
+    float rotationX;
+    float rotationY;
+
+    Uniforms uniforms;
+} AppContext;
 
 static const size_t kNumVertices = 8;
 static const size_t kNumIndices = 36;
-static const GBE_Vertex kVertices[kNumVertices] = {
+static const Vertex kVertices[kNumVertices] = {
     { .position = { -1,  1,  1, 1}, .color = { 0, 1, 1, 1 } },
     { .position = { -1, -1,  1, 1}, .color = { 0, 0, 1, 1 } },
     { .position = {  1, -1,  1, 1}, .color = { 1, 0, 1, 1 } },
@@ -40,7 +55,7 @@ static const GBE_Vertex kVertices[kNumVertices] = {
     { .position = {  1,  1, -1, 1}, .color = { 1, 1, 0, 1 } }
 };
 
-static const uint16_t kIndices[kNumIndices] = {
+static const Uint16 kIndices[kNumIndices] = {
     3, 2, 6, 6, 7, 3,
     4, 5, 1, 1, 0, 4,
     4, 0, 3, 3, 7, 4,
@@ -49,7 +64,7 @@ static const uint16_t kIndices[kNumIndices] = {
     7, 6, 5, 5, 4, 7
 };
 
-static SDL_AppResult BuildPipeline(GBE_AppContext* context)
+static SDL_AppResult BuildPipeline(AppContext* context)
 {
     GBE_LoadShaderInfo vertexShaderInfo = {
         .path = "SpinningCube",
@@ -60,7 +75,7 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
         .storageTextureCount = 0
     };
 
-    SDL_GPUShader* vertexShader = GBE_LoadShader(context->titleStorage, context->device, &vertexShaderInfo);
+    SDL_GPUShader* vertexShader = GBE_LoadShader(&context->context, &vertexShaderInfo);
     if (vertexShader == NULL) {
         return SDL_APP_FAILURE;
     }
@@ -74,16 +89,16 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
         .storageTextureCount = 0
     };
 
-    SDL_GPUShader* fragmentShader = GBE_LoadShader(context->titleStorage, context->device, &fragmentShaderInfo);
+    SDL_GPUShader* fragmentShader = GBE_LoadShader(&context->context, &fragmentShaderInfo);
     if (fragmentShader == NULL) {
-        SDL_ReleaseGPUShader(context->device, vertexShader);
+        SDL_ReleaseGPUShader(context->context.device, vertexShader);
         return SDL_APP_FAILURE;
     }
 
     // Lots of stuff here! Let's take it one chunk at a time. First, we describe the
     // render target, which includes both a target pixel format and how we want to
     // blend colors into it.
-    SDL_GPUTextureFormat targetFormat = SDL_GetGPUSwapchainTextureFormat(context->device, context->window);
+    SDL_GPUTextureFormat targetFormat = SDL_GetGPUSwapchainTextureFormat(context->context.device, context->context.window);
 
     SDL_GPUGraphicsPipelineTargetInfo targetInfo = {
         .num_color_targets = 1,
@@ -122,7 +137,7 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
             .slot = 0,
             .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
             .instance_step_rate = 0,
-            .pitch = sizeof(GBE_Vertex)
+            .pitch = sizeof(Vertex)
         }},
         .num_vertex_attributes = 2,
         .vertex_attributes = (SDL_GPUVertexAttribute[]){{
@@ -150,7 +165,7 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
         .fragment_shader = fragmentShader
     };
 
-    SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(context->device, &pipelineCreateInfo);
+    SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(context->context.device, &pipelineCreateInfo);
     if (pipeline == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create graphics pipeline: %s", SDL_GetError());
     }
@@ -158,40 +173,40 @@ static SDL_AppResult BuildPipeline(GBE_AppContext* context)
     // Now that the pipeline has been created, it's holding on to references to the shaders, so we
     // don't need to keep them around anymore. (I think they're reference counted, and the pipeline
     // retained them.)
-    SDL_ReleaseGPUShader(context->device, vertexShader);
-    SDL_ReleaseGPUShader(context->device, fragmentShader);
+    SDL_ReleaseGPUShader(context->context.device, vertexShader);
+    SDL_ReleaseGPUShader(context->context.device, fragmentShader);
 
     // Store the created pipeline (or the NULL if it failed) in our application context and be done.
     context->pipeline = pipeline;
     return pipeline != NULL ? SDL_APP_CONTINUE : SDL_APP_FAILURE;
 }
 
-static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
+static SDL_AppResult BuildVertexBuffer(AppContext* context)
 {
     // Creating a vertex buffer is easy: all we really need to tell it is what
     // we're going to use it for and how much space to allocate.
     SDL_GPUBufferCreateInfo bufferCreateInfo = {
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-        .size = (Uint32)(sizeof(GBE_Vertex) * kNumVertices)
+        .size = (Uint32)(sizeof(Vertex) * kNumVertices)
     };
-    SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(context->device, &bufferCreateInfo);
+    SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(context->context.device, &bufferCreateInfo);
 
     // Getting data _into_ the vertex buffer is way more work. We can't just copy data in, we
     // have to create a Transfer Buffer, copy memory into that, and then ask the GPU API to
     // copy the data from the transfer buffer into the vertex buffer.
     SDL_GPUTransferBufferCreateInfo transferBufferCreateInfo = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = (Uint32)(sizeof(GBE_Vertex) * kNumVertices)
+        .size = (Uint32)(sizeof(Vertex) * kNumVertices)
     };
-    SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(context->device, &transferBufferCreateInfo);
+    SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(context->context.device, &transferBufferCreateInfo);
 
-    GBE_Vertex* vertexPtr = SDL_MapGPUTransferBuffer(context->device, transferBuffer, false);
-    SDL_memcpy(vertexPtr, kVertices, sizeof(GBE_Vertex) * kNumVertices);
-    SDL_UnmapGPUTransferBuffer(context->device, transferBuffer);
+    Vertex* vertexPtr = SDL_MapGPUTransferBuffer(context->context.device, transferBuffer, false);
+    SDL_memcpy(vertexPtr, kVertices, sizeof(Vertex) * kNumVertices);
+    SDL_UnmapGPUTransferBuffer(context->context.device, transferBuffer);
     vertexPtr = NULL;
 
     // Copy the data into the buffer
-    SDL_GPUCommandBuffer* cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
+    SDL_GPUCommandBuffer* cmdBuf = SDL_AcquireGPUCommandBuffer(context->context.device);
     SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(cmdBuf);
     SDL_GPUTransferBufferLocation sourceBuffer = {
         .transfer_buffer = transferBuffer,
@@ -200,44 +215,44 @@ static SDL_AppResult BuildVertexBuffer(GBE_AppContext* context)
     SDL_GPUBufferRegion targetBuffer = {
         .buffer = vertexBuffer,
         .offset = 0,
-        .size = (Uint32)(sizeof(GBE_Vertex) * kNumVertices)
+        .size = (Uint32)(sizeof(Vertex) * kNumVertices)
     };
 
     SDL_UploadToGPUBuffer(copyPass, &sourceBuffer, &targetBuffer, true);
     SDL_EndGPUCopyPass(copyPass);
     SDL_SubmitGPUCommandBuffer(cmdBuf);
 
-    SDL_ReleaseGPUTransferBuffer(context->device, transferBuffer);
+    SDL_ReleaseGPUTransferBuffer(context->context.device, transferBuffer);
 
     context->vertexBuffer = vertexBuffer;
     return SDL_APP_CONTINUE;
 }
 
-static SDL_AppResult BuildIndexBuffer(GBE_AppContext* context)
+static SDL_AppResult BuildIndexBuffer(AppContext* context)
 {
     // This is pretty much the same thing as BuildVertexBuffer, except we're working with
-    // GBE_Index instead of GBE_Vertex.
+    // Uint16 instead of Vertex.
     SDL_GPUBufferCreateInfo createInfo = {
         // NOTE: Index buffers use a different usage type than vertex buffers
         .usage = SDL_GPU_BUFFERUSAGE_INDEX,
-        .size = sizeof(GBE_Index) * kNumIndices
+        .size = sizeof(Uint16) * kNumIndices
     };
-    SDL_GPUBuffer* indexBuffer = SDL_CreateGPUBuffer(context->device, &createInfo);
+    SDL_GPUBuffer* indexBuffer = SDL_CreateGPUBuffer(context->context.device, &createInfo);
 
     // Copying data in works the same way.
     SDL_GPUTransferBufferCreateInfo transferBufferCreateInfo = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = sizeof(GBE_Index) * kNumIndices
+        .size = sizeof(Uint16) * kNumIndices
     };
-    SDL_GPUTransferBuffer* indexTransferBuffer = SDL_CreateGPUTransferBuffer(context->device, &transferBufferCreateInfo);
+    SDL_GPUTransferBuffer* indexTransferBuffer = SDL_CreateGPUTransferBuffer(context->context.device, &transferBufferCreateInfo);
 
     // Copy our static indices over into GPU memory.
-    GBE_Index* indexPtr = SDL_MapGPUTransferBuffer(context->device, indexTransferBuffer, false);
-    SDL_memcpy(indexPtr, kIndices, sizeof(GBE_Index) * kNumIndices);
-    SDL_UnmapGPUTransferBuffer(context->device, indexTransferBuffer);
+    Uint16* indexPtr = SDL_MapGPUTransferBuffer(context->context.device, indexTransferBuffer, false);
+    SDL_memcpy(indexPtr, kIndices, sizeof(Uint16) * kNumIndices);
+    SDL_UnmapGPUTransferBuffer(context->context.device, indexTransferBuffer);
     indexPtr = NULL;
 
-    SDL_GPUCommandBuffer* cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
+    SDL_GPUCommandBuffer* cmdBuf = SDL_AcquireGPUCommandBuffer(context->context.device);
     SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(cmdBuf);
     SDL_GPUTransferBufferLocation sourceBuffer = {
         .transfer_buffer = indexTransferBuffer,
@@ -246,14 +261,14 @@ static SDL_AppResult BuildIndexBuffer(GBE_AppContext* context)
     SDL_GPUBufferRegion targetBuffer = {
         .buffer = indexBuffer,
         .offset = 0,
-        .size = (Uint32)(sizeof(GBE_Index) * kNumIndices)
+        .size = (Uint32)(sizeof(Uint16) * kNumIndices)
     };
 
     SDL_UploadToGPUBuffer(copyPass, &sourceBuffer, &targetBuffer, true);
     SDL_EndGPUCopyPass(copyPass);
     SDL_SubmitGPUCommandBuffer(cmdBuf);
 
-    SDL_ReleaseGPUTransferBuffer(context->device, indexTransferBuffer);
+    SDL_ReleaseGPUTransferBuffer(context->context.device, indexTransferBuffer);
     context->indexBuffer = indexBuffer;
 
     return SDL_APP_CONTINUE;
@@ -263,8 +278,8 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
 {
     SDL_SetAppMetadata("GPU by Example - Uniforms", "0.0.1", "net.jonathanfischer.GpuByExample3");
 
-    GBE_AppContext* appContext;
-    SDL_AppResult rc = GBE_Init(&appContext);
+    AppContext* appContext = SDL_calloc(1, sizeof(AppContext));
+    SDL_AppResult rc = GBE_CommonInit(&appContext->context, "GPU by Example - Uniforms");
     if (rc != SDL_APP_CONTINUE) {
         return rc;
     }
@@ -281,10 +296,12 @@ SDL_AppResult SDL_AppInit(void** appState, int argc, char** argv)
     }
 
     rc = BuildIndexBuffer(appContext);
+    appContext->lastFrameTime = SDL_GetTicks();
+
     return rc;
 }
 
-static void frameStep(GBE_AppContext* appContext)
+static void frameStep(AppContext* appContext)
 {
     // Calculate how many milliseconds have passed since the last time we did this.
     Uint64 currentFrameTime = SDL_GetTicks();
@@ -318,7 +335,7 @@ static void frameStep(GBE_AppContext* appContext)
     GBE_Matrix4x4 viewMatrix = GBE_Matrix4x4Translation(cameraTranslation);
 
     int viewportWidth, viewportHeight;
-    SDL_GetWindowSize(appContext->window, &viewportWidth, &viewportHeight);
+    SDL_GetWindowSize(appContext->context.window, &viewportWidth, &viewportHeight);
     float aspect = (float)viewportWidth / viewportHeight;
     float fov = (2 * M_PI) / 5;
     float near = 1;
@@ -332,18 +349,18 @@ static void frameStep(GBE_AppContext* appContext)
 
 SDL_AppResult SDL_AppIterate(void* appState)
 {
-    GBE_AppContext* context = (GBE_AppContext*)appState;
+    AppContext* context = (AppContext*)appState;
     frameStep(context);
 
     SDL_GPUCommandBuffer* cmdBuf;
-    cmdBuf = SDL_AcquireGPUCommandBuffer(context->device);
+    cmdBuf = SDL_AcquireGPUCommandBuffer(context->context.device);
     if (cmdBuf == NULL) {
         SDL_Log("SDL_AcquireGPUCommandBuffer failed: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
     SDL_GPUTexture* swapchainTexture;
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuf, context->window, &swapchainTexture, NULL, NULL)) {
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuf, context->context.window, &swapchainTexture, NULL, NULL)) {
         SDL_Log("SDL_WaitAndAcquireGPUSwapchainTexture: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
@@ -360,7 +377,7 @@ SDL_AppResult SDL_AppIterate(void* appState)
         SDL_GPURenderPass* renderPass;
         renderPass = SDL_BeginGPURenderPass(cmdBuf, &targetInfo, 1, NULL);
         SDL_BindGPUGraphicsPipeline(renderPass, context->pipeline);
-        SDL_PushGPUVertexUniformData(cmdBuf, 0, &(context->uniforms), sizeof(GBE_Uniforms));
+        SDL_PushGPUVertexUniformData(cmdBuf, 0, &(context->uniforms), sizeof(Uniforms));
 
         // The API takes an array of vertex buffer pointers, not a single one.
         SDL_GPUBufferBinding vertexBufferBinding = {
@@ -396,5 +413,16 @@ SDL_AppResult SDL_AppEvent(void* appState, SDL_Event* event)
 
 void SDL_AppQuit(void* appState, SDL_AppResult result)
 {
-    GBE_Cleanup((GBE_AppContext*)appState);
+    AppContext* context = (AppContext*)appState;
+
+    if (context->pipeline != NULL) {
+        SDL_ReleaseGPUGraphicsPipeline(context->context.device, context->pipeline);
+    }
+
+    if (context->vertexBuffer != NULL) {
+        SDL_ReleaseGPUBuffer(context->context.device, context->vertexBuffer);
+    }
+
+    GBE_Quit(&context->context);
+    SDL_free(context);
 }

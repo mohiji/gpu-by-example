@@ -10,4 +10,7 @@
    <FileRef
       location = "group:Example3-Uniforms/Example3-Uniforms.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:GBECommon/GBECommon.xcodeproj">
+   </FileRef>
 </Workspace>

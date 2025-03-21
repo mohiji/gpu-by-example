@@ -10,6 +10,7 @@
 #define GpuByExample_Shaders_h
 
 #include <SDL3/SDL.h>
+#include "GBE_Context.h"
 
 typedef struct GBE_LoadShaderInfo {
     const char* path;
@@ -21,6 +22,6 @@ typedef struct GBE_LoadShaderInfo {
     Uint32 storageTextureCount;
 } GBE_LoadShaderInfo;
 
-SDL_GPUShader* GBE_LoadShader(SDL_Storage* storage, SDL_GPUDevice* device, const GBE_LoadShaderInfo* loadShaderInfo);
+SDL_GPUShader* GBE_LoadShader(GBE_Context* context, const GBE_LoadShaderInfo* loadShaderInfo);
 
 #endif /* GpuByExample_Shaders_h */

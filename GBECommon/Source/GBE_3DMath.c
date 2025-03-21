@@ -7,7 +7,7 @@
 //  Vector and matrix math data structures and functions.
 
 #include <math.h>
-#include "GBE_3DMath.h"
+#include <GBECommon/GBE_3DMath.h>
 
 const GBE_Vector3 kZeroVector3 = { 0, 0, 0 };
 
