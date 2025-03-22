@@ -42,9 +42,9 @@ typedef struct AppContext {
     Uniforms uniforms;
 } AppContext;
 
-static const size_t kNumVertices = 8;
-static const size_t kNumIndices = 36;
-static const Vertex kVertices[kNumVertices] = {
+static const Uint32 kNumVertices = 8;
+static const Uint32 kNumIndices = 36;
+static const Vertex kVertices[] = {
     { .position = { -1,  1,  1, 1}, .color = { 0, 1, 1, 1 } },
     { .position = { -1, -1,  1, 1}, .color = { 0, 0, 1, 1 } },
     { .position = {  1, -1,  1, 1}, .color = { 1, 0, 1, 1 } },
@@ -55,7 +55,7 @@ static const Vertex kVertices[kNumVertices] = {
     { .position = {  1,  1, -1, 1}, .color = { 1, 1, 0, 1 } }
 };
 
-static const Uint16 kIndices[kNumIndices] = {
+static const Uint16 kIndices[] = {
     3, 2, 6, 6, 7, 3,
     4, 5, 1, 1, 0, 4,
     4, 0, 3, 3, 7, 4,
@@ -320,10 +320,10 @@ static void frameStep(AppContext* appContext)
 
     // Keep the cube spinning along
     float dt = deltaFrameTime / 1000.0f;
-    appContext->rotationX += dt * (M_PI / 2);
-    appContext->rotationY += dt * (M_PI / 3);
+    appContext->rotationX += (float)(dt * (M_PI / 2));
+    appContext->rotationY += (float)(dt * (M_PI / 3));
 
-    float scaleFactor = sinf(5 * appContext->elapsedTime / 1000.0f) * 0.25 + 1;
+    float scaleFactor = sinf(5 * appContext->elapsedTime / 1000.0f) * 0.25f + 1;
     GBE_Vector3 xAxis = { 1, 0, 0 };
     GBE_Vector3 yAxis = { 0, 1, 0 };
     GBE_Matrix4x4 xRot = GBE_Matrix4x4RotateAxisAngle(xAxis, appContext->rotationX);
@@ -337,7 +337,7 @@ static void frameStep(AppContext* appContext)
     int viewportWidth, viewportHeight;
     SDL_GetWindowSize(appContext->context.window, &viewportWidth, &viewportHeight);
     float aspect = (float)viewportWidth / viewportHeight;
-    float fov = (2 * M_PI) / 5;
+    float fov = (float)(2 * M_PI) / 5;
     float near = 1;
     float far = 100;
     GBE_Matrix4x4 projectionMatrix = GBE_Matrix4x4Perspective(aspect, fov, near, far);

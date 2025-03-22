@@ -184,7 +184,7 @@ GBE_Matrix4x4 GBE_Matrix4x4RotateAxisAngle(GBE_Vector3 axis, float angleInRadian
 
 GBE_Matrix4x4 GBE_Matrix4x4Perspective(float aspect, float fovy, float near, float far)
 {
-    float yScale = 1 / tan(fovy * 0.5f);
+    float yScale = 1 / tanf(fovy * 0.5f);
     float xScale = yScale / aspect;
     float zRange = far - near;
     float zScale = -(far + near) / zRange;

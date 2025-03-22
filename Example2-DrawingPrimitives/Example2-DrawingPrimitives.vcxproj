@@ -148,7 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\AppContext.c" />
-    <ClCompile Include="Source\main.c" />
+    <ClCompile Include="Source\Example2.c" />
     <ClCompile Include="Source\Shaders.c" />
   </ItemGroup>
   <ItemGroup>

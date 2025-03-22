@@ -8,7 +8,7 @@
 //  Cornet's SDL_GPU examples repo:
 //  https://github.com/TheSpydog/SDL_gpu_examples/
 
-#include "GBE_Shaders.h"
+#include <GBECommon/GBE_Shaders.h>
 
 // Loading shaders is a little involved, in particular because we need to support
 // 2 types of shaders (vertex and fragment/pixel) and 3 backends (Direct3D 12,
