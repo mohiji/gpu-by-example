@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		277B4A682D99CE13008D647A /* libGBECommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 277B4A672D99CE13008D647A /* libGBECommon.a */; };
 		27E6F5002D778D09007BA138 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; };
 		27E6F5012D778D09007BA138 /* SDL3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 27E6F4FE2D778D03007BA138 /* SDL3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -26,15 +27,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		277B4A672D99CE13008D647A /* libGBECommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libGBECommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		27E6F4DB2D778BC9007BA138 /* Example2-DrawingPrimitives.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Example2-DrawingPrimitives.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		27E6F4FE2D778D03007BA138 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = ../Libraries/SDL3.xcframework; sourceTree = SOURCE_ROOT; };
 		27E6F5072D778E8D007BA138 /* .clang-format */ = {isa = PBXFileReference; lastKnownFileType = text; name = ".clang-format"; path = "../.clang-format"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		27DB64472D7ABA8F00855F9A /* Shaders */ = {
+		27DB64472D7ABA8F00855F9A /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Shaders;
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		27E6F4F92D778BE1007BA138 /* Source */ = {
@@ -50,20 +52,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				27E6F5002D778D09007BA138 /* SDL3.xcframework in Frameworks */,
+				277B4A682D99CE13008D647A /* libGBECommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		277B4A662D99CE13008D647A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				277B4A672D99CE13008D647A /* libGBECommon.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		27E6F4D22D778BC9007BA138 = {
 			isa = PBXGroup;
 			children = (
 				27E6F4F92D778BE1007BA138 /* Source */,
-				27DB64472D7ABA8F00855F9A /* Shaders */,
+				27DB64472D7ABA8F00855F9A /* Resources */,
 				27E6F4DC2D778BC9007BA138 /* Products */,
 				27E6F4FE2D778D03007BA138 /* SDL3.xcframework */,
 				27E6F5072D778E8D007BA138 /* .clang-format */,
+				277B4A662D99CE13008D647A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,7 +104,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				27DB64472D7ABA8F00855F9A /* Shaders */,
+				27DB64472D7ABA8F00855F9A /* Resources */,
 				27E6F4F92D778BE1007BA138 /* Source */,
 			);
 			name = "Example2-DrawingPrimitives";
@@ -282,6 +294,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../GBECommon/Include";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -306,6 +319,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../GBECommon/Include";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;

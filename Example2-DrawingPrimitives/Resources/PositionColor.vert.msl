@@ -1,0 +1,55 @@
+// PositionColor.vert.hlsl
+//
+// Takes in a 2-component position and 4-component color, outputs
+// a 4-component position and the input color.
+//
+// You can skip compiling this: Metal can take shaders as source and
+// compile them at runtime.
+
+struct InputVertex
+{
+    // 2-component (x, y) vertex position. The [[attribute(0)]]
+    // annotation tells Metal that this is the first item we've
+    // defined in our vertex attribute description.
+    float2 position [[attribute(0)]];
+
+    // 4-component (r, g, b, a) color.
+    float4 color    [[attribute(1)]];
+};
+
+struct OutputVertex
+{
+    // 4-component (x, y, z, w) vertex position. Like HLSL's
+    // SV_Position, the [[position]] attribute tells Metal
+    // which of these fields is to be used as the final vertex
+    // position.
+    float4 position [[position]];
+
+    // The color field goes un-annotated here because we'll
+    // be passing this whole structure to the fragment shader.
+    float4 color;
+};
+
+// The vertex shader takes a single input vertex and returns a
+// single output vertex. The [[stage_in]] annotation helps
+// Metal map this input to the vertex attribute description we
+// provide in our C code.
+//
+// A vertex shader function needs to be annotated with `vertex`
+// as the first keyword.
+//
+// NOTE: This function is named `main` in the HLSL and GLSL
+// shaders, but that name isn't allowed in Metal.
+vertex OutputVertex vertex_main(InputVertex vertex_in [[stage_in]])
+{
+    OutputVertex out;
+
+    // Take that (x, y) input position and add fixed z and w
+    // components to it.
+    out.position = float4(vertex_in.position, 0, 1);
+
+    // Pass through the input color unchanged.
+    out.color = vertex_in.color;
+
+    return out;
+}

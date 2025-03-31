@@ -18,15 +18,26 @@ SDL_AppResult GBE_CommonInit(GBE_Context* appContext, const char* windowTitle)
         return SDL_APP_FAILURE;
     }
 
-    SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV |
-                                        SDL_GPU_SHADERFORMAT_DXIL |
-                                        SDL_GPU_SHADERFORMAT_METALLIB |
-                                        SDL_GPU_SHADERFORMAT_MSL;
+    // SDL runs through a list of known GPU backends to find one that matches the list of shader
+    // formats you give it, in this order:
+    // - Metal
+    // - Vulkan
+    // - Direct3D 12
+    //
+    // So if your hardware supports Vulkan, it's going to use that. I want to actually test my
+    // Direct3D shaders, so I try only DXIL first, and if that fails I'll try the others.
 
+    SDL_GPUShaderFormat shaderFormats = SDL_GPU_SHADERFORMAT_DXIL;
     SDL_GPUDevice* device = SDL_CreateGPUDevice(shaderFormats, true, NULL);
     if (device == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't not create GPU device: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
+        shaderFormats = SDL_GPU_SHADERFORMAT_SPIRV |
+                        SDL_GPU_SHADERFORMAT_MSL;
+
+        device = SDL_CreateGPUDevice(shaderFormats, true, NULL);
+        if (device == NULL) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't not create GPU device: %s", SDL_GetError());
+            return SDL_APP_FAILURE;
+        }
     }
 
     SDL_Log("Using %s GPU implementation.", SDL_GetGPUDeviceDriver(device));
@@ -82,4 +93,3 @@ void GBE_Quit(GBE_Context* appContext)
 
     SDL_Quit();
 }
-
