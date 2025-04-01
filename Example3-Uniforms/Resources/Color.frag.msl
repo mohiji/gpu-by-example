@@ -1,11 +1,29 @@
+// PositionColor.vert.hlsl
+//
+// Takes in a 4-component color and returns it unchanged.
+//
+// You can skip compiling this: Metal can take shaders as source
+// and compile them at runtime.
 
+// In Metal the entire structure output from the vertex shader
+// gets passed in to the fragment shader. Metal allows you to
+// define both the vertex and fragment shaders in the same file,
+// where working like this would make more sense.
+
+// Same OutputVertex structure from PositionColor.vert.msl
 struct OutputVertex
 {
     float4 position [[position]];
     float4 color;
 };
 
-fragment float4 fragment_main(OutputVertex vertex_in [[stage_in]])
+// Fragment shader functions are specified with the `fragment`
+// keyword, and as in in PositionColor.vert.msl, a function
+// can't be named `main` in metal so we name this one
+// `fragment_main`.
+fragment float4 fragment_main(
+  OutputVertex vertex_in [[stage_in]]
+)
 {
     return vertex_in.color;
 }

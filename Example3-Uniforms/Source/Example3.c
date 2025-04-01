@@ -81,7 +81,7 @@ static SDL_AppResult BuildPipeline(AppContext* context)
     }
 
     GBE_LoadShaderInfo fragmentShaderInfo = {
-        .path = "SpinningCube",
+        .path = "Color",
         .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
         .samplerCount = 0,
         .uniformBufferCount = 0,

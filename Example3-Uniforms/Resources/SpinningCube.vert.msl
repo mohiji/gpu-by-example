@@ -1,0 +1,45 @@
+// SpinningCube.metal
+//
+// Takes in a full 4-component vertex position and transforms it
+// using a matrix provided in a Uniform Buffer.
+//
+
+// In order to get access to the float4x4 matrix type we need to
+// include Metal's standard library.
+#include <metal_stdlib>
+using namespace metal;
+
+struct InputVertex
+{
+    float4 position [[attribute(0)]];
+    float4 color    [[attribute(1)]];
+};
+
+// The calling program provides a full Model View Projection
+// matrix, all we need to do in here is apply it.
+struct Uniforms
+{
+    float4x4 modelViewProjectionMatrix;
+};
+
+// Same output structure as last time, so we'll be able to
+// re-use the fragment shader from Example 2.
+struct OutputVertex
+{
+    float4 position [[position]];
+    float4 color;
+};
+
+vertex OutputVertex vertex_main(
+  InputVertex vertex_in [[stage_in]],
+
+  // Metal takes in uniforms as an additional buffer parameter.
+  constant Uniforms* uniforms [[buffer(0)]]
+)
+{
+    OutputVertex vertex_out;
+    vertex_out.position =
+        uniforms->modelViewProjectionMatrix * vertex_in.position;
+    vertex_out.color = vertex_in.color;
+    return vertex_out;
+}

@@ -1,19 +1,17 @@
+// Color.frag.glsl
 //
-//  Color.frag.glsl
-//  Chapter2-DrawingPrimitives
+// Takes in a color and returns it
 //
-//  Created by Jonathan Fischer on 3/12/25.
-//
-//  Similarly to PositionColor.vert.glsl, this just passes
-//  through a single color
+// To compile this for Vulkan:
+//     glslang -V Color.frag.glsl -o Color.frag.spv
 
 #version 450
 
 // The input color we'll get from the vertex shader
 layout(location = 0) in vec4 inColor;
 
-// I don't know why there isn't a predefined location
-// for this, like gl_Color or something.
+// Unlike gl_Position in the vertex shader, we need
+// to name an output variable for the color.
 layout(location = 0) out vec4 outColor;
 
 void main() {
