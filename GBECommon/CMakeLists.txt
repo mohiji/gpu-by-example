@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.15)
 project(
     GBECommon
     VERSION 0.0.1
-    LANGUAGES C)
+    LANGUAGES C
+)
 
-add_library(${PROJECT_NAME})
+add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME}
   PRIVATE
   Source/GBE_3DMath.c
@@ -18,5 +19,6 @@ target_sources(${PROJECT_NAME}
 # this allows the library itself and users to #include the library headers
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>)
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
+    ../Libraries/SDL3/include)
 
