@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
+    <IncludePath>$(SolutionDir)\GBECommon\Include;$(SolutionDir)\Libraries\Windows\include</IncludePath>
     <LibraryPath>$(SolutionDir)\Libraries\Windows\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
+    <IncludePath>$(SolutionDir)\GBECommon\Include;$(SolutionDir)\Libraries\Windows\include</IncludePath>
     <LibraryPath>$(SolutionDir)\Libraries\Windows\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
+    <IncludePath>$(SolutionDir)\GBECommon\Include;$(SolutionDir)\Libraries\Windows\include</IncludePath>
     <LibraryPath>$(SolutionDir)\Libraries\Windows\lib/x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Libraries\Windows\include</IncludePath>
+    <IncludePath>$(SolutionDir)\GBECommon\Include;$(SolutionDir)\Libraries\Windows\include</IncludePath>
     <LibraryPath>$(SolutionDir)\Libraries\Windows\lib/x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -147,13 +147,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\AppContext.c" />
     <ClCompile Include="Source\Example2.c" />
-    <ClCompile Include="Source\Shaders.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\AppContext.h" />
-    <ClInclude Include="Source\Shaders.h" />
+    <ProjectReference Include="..\GBECommon\GBECommon.vcxproj">
+      <Project>{0c8a3323-cb2f-4138-9a12-349574eebeb3}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
