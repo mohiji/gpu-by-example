@@ -1,6 +1,3 @@
-// NOTE: Does not work yet, this one is crashing Vulkan. There's
-// something about uniform blocks that I haven't figured out yet.
-
 // SpinningCube.vert.glsl
 //
 // Takes in a full 4-component vertex position and transforms it
@@ -26,8 +23,15 @@ layout(location = 1) in vec4 inColor;
 // 4-component vertex color:
 layout(location = 0) out vec4 fragColor;
 
-// We provide a transformation matrix via a Uniform Block
-layout(binding = 0) uniform TransformBlock
+// We provide a transformation matrix via a Uniform Block. Fun
+// stuff going on here:
+//
+// - This is the first uniform buffer slot, so binding = 0.
+// - To be completely honest, I don't understand why I need
+//   set = 1. I added it after comparing the assembly output
+//   of this file using glslang vs the HLSL equivalent file
+//   using dxc. Without set = 1, the program will crash.
+layout(binding = 0, set = 1) uniform TransformBlock
 {
     mat4 modelViewProjection;
 } transforms;
@@ -36,7 +40,7 @@ layout(binding = 0) uniform TransformBlock
 // return anything or take any arguments.
 void main() {
     // Transform the vertex by the provided transform matrix.
-    gl_Position = inPosition * transforms.modelViewProjection;
+    gl_Position = transforms.modelViewProjection * inPosition;
 
     // And the color output we defined above
     fragColor = inColor;
